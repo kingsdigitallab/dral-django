@@ -81,7 +81,7 @@ INSTALLED_APPS = [
 ]
 
 INSTALLED_APPS += [    # your project apps here
-
+    'dral_wagtail',
     'activecollab_digger',
     'kdl_ldap',
     'rest_framework',
@@ -173,9 +173,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
-
-
     'wagtail.core.middleware.SiteMiddleware',
     'wagtail.contrib.redirects.middleware.RedirectMiddleware',
 
@@ -199,11 +196,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.template.context_processors.static',
                 'django.contrib.messages.context_processors.messages',
-
                 'activecollab_digger.context_processors.activecollab_digger',
-
-
-
+                'dral_wagtail.context_processors.settings',
             ],
         },
     },
@@ -312,7 +306,7 @@ WAGTAIL_SITE_NAME = PROJECT_TITLE
 ITEMS_PER_PAGE = 10
 WAGTAILSEARCH_BACKENDS = {
     'default': {
-        'BACKEND': 'wagtail.wagtailsearch.backends.elasticsearch5',
+        'BACKEND': 'wagtail.search.backends.elasticsearch5',
         'AUTO_UPDATE': False,
         'URLS': ['http://127.0.0.1:9200'],
         'INDEX': 'dral_wagtail',

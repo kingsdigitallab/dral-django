@@ -1,2 +1,11 @@
+{% load wagtailcore_tags dral_wagtail_tags %}
+
 {% block main_menu %}
+
+    {% get_site_root as site_root %}
+
+    {% for child in site_root.get_children.live %}
+        <a href="{% pageurl child %}">{{ child.title }}</a>
+    {% endfor %}
+
 {% endblock %}
