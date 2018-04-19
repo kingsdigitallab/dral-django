@@ -55,6 +55,9 @@ docs/_build/
 # PyBuilder
 target/
 
+# Private dir
+research_data/private
+
 # Local
 .DS_Store
 .babelrc

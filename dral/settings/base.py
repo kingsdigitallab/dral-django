@@ -81,6 +81,7 @@ INSTALLED_APPS = [
 ]
 
 INSTALLED_APPS += [    # your project apps here
+    'dral_text',
     'dral_wagtail',
     'activecollab_digger',
     'kdl_ldap',
