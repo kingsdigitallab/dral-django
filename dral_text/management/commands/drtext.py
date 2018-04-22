@@ -229,12 +229,38 @@ class Command(KDLCommand):
             locations = lines.get('locations', None)
 
             median = 100000
-            for line in lines.values():
-                length = 0
-                while line[length][0]:
-                    length += 1
-                if length < median:
-                    median = length
+
+            if locations:
+                length = len(locations)
+                while length and (
+                    locations[length - 1] is None or
+                    not re.match(r'^\s*\d+\s*$', locations[length - 1][0])
+                ):
+                    length -= 1
+                median = length
+            else:
+                for line in lines.values():
+                    if locations:
+                        line = locations
+                    length = 0
+                    # stop if blank value AND no number in next cell
+                    while line[length][0] or (
+                        (length + 1) < len(line) and
+                        re.match(r'\d+', line[length + 1][0])
+                    ):
+                        length += 1
+
+                    if length < median:
+                        median = length
+                    if locations:
+                        break
+
+            # read all the occurence records for that lemma
+            occurrences = {
+                '%s:%s' % (obj.language_id, obj.cell_col): obj
+                for obj
+                in Occurence.objects.filter(lemma=lemma, chapter=self.chapter)
+            }
 
             for lg in ['EN', 'RU', 'LT', 'POL']:
                 line = lines.get(lg)
@@ -244,7 +270,9 @@ class Command(KDLCommand):
                     for v in line:
                         if i >= median:
                             break
-                        if not v[0]:
+                        # removed that cnd as some strings can be blank
+                        # in the sequence... (benjy, come*, lt)
+                        if 0 and not v[0]:
                             break
 
                         if v[1] not in styles:
@@ -257,7 +285,15 @@ class Command(KDLCommand):
                             chapter=self.chapter
                         )
 
-                        occurence = Occurence.objects.filter(**options).first()
+                        # occurence = Occurence.objects\
+                        # .filter(**options).first()
+                        occurence = occurrences.get(
+                            '%s:%s' % (
+                                options['language'].id,
+                                options['cell_col']
+                            ),
+                            None
+                        )
 
                         options['lemma'] = lemma
                         options['freq'] = freq
@@ -283,11 +319,16 @@ class Command(KDLCommand):
                                 print(v[0])
 
                         if occurence:
+                            save = 0
                             for k in options.keys():
-                                setattr(occurence, k, options[k])
+                                if getattr(occurence, k, None) != options[k]:
+                                    save = 1
+                                    setattr(occurence, k, options[k])
                         else:
                             occurence = Occurence(**options)
-                        occurence.save()
+                            save = 1
+                        if save:
+                            occurence.save()
                         i += 1
 
     def get_values_next_row(self, table, values):

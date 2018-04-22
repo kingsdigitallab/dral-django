@@ -37,25 +37,28 @@ class Lemma(models.Model):
 
 
 class Occurence(models.Model):
-    string = models.CharField(max_length=20, null=True, blank=True)
-    sentence_index = models.IntegerField()
-    context = models.CharField(max_length=50, blank=True)
+    # FIELDS IMPORTED STRAIGHT FROM THE SPREADSHEET
     cell = models.CharField(max_length=80, blank=True)
     cell_style = models.CharField(max_length=10, blank=True)
     cell_line = models.IntegerField(default=0)
     cell_col = models.IntegerField(default=0)
     freq = models.IntegerField(default=0)
-    replace = models.BooleanField(default=False)
-    zero = models.BooleanField(default=False)
-    paraphrase = models.BooleanField(default=False)
-    language = models.ForeignKey('Language', on_delete=models.PROTECT)
-    chapter = models.CharField(max_length=10, blank=True)
     lemma = models.ForeignKey(
         'Lemma',
         null=True,
         blank=True,
         default=None,
         on_delete=models.PROTECT)
+
+    # DERIVED/INTERPRETED FROM THE ABOVE FIELDS
+    string = models.CharField(max_length=20, null=True, blank=True)
+    sentence_index = models.IntegerField()
+    context = models.CharField(max_length=50, blank=True)
+    replace = models.BooleanField(default=False)
+    zero = models.BooleanField(default=False)
+    paraphrase = models.BooleanField(default=False)
+    language = models.ForeignKey('Language', on_delete=models.PROTECT)
+    chapter = models.CharField(max_length=10, blank=True)
     lemma_group = models.IntegerField()
 
 
