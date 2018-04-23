@@ -1,9 +1,11 @@
 # from django.db import models
 from wagtail.core.fields import RichTextField
-from django.db.models.fields import CharField
+from django.db.models.fields import CharField, SlugField
 from wagtail.core.models import Page
 from wagtail.admin.edit_handlers import FieldPanel, MultiFieldPanel
 from wagtail.search import index
+from django.utils.html import strip_tags
+import re
 
 # ===================================================================
 #                            STATIC PAGES
@@ -45,7 +47,6 @@ class RichPage(Page):
     ]
 
     def body_highlightable(self):
-        from django.utils.html import strip_tags
         return strip_tags((self.body or ''))
 
     search_fields = Page.search_fields + [
@@ -58,6 +59,9 @@ class RichPage(Page):
 
     def get_shortest_title(self):
         return self.short_title or self.title
+
+    def has_body(self):
+        return len(re.sub(r'(?ms)\s', '', strip_tags((self.body or ''))))
 
 
 class HomePage(RichPage):
@@ -73,4 +77,23 @@ class VisualisationSetPage(RichPage):
 
 
 class VisualisationPage(RichPage):
-    pass
+    visualisation_code = SlugField(
+        'Visualisation Code',
+        max_length=32,
+        blank=True,
+        null=True,
+        default=None,
+        help_text=''
+    )
+
+    settings_panels = Page.settings_panels + [
+        FieldPanel('visualisation_code', classname="full"),
+    ]
+
+    def serve(self, request):
+        context = {
+            'page': self,
+            'request': request,
+        }
+        from .views import view_visualisation
+        return view_visualisation(self.visualisation_code, context)

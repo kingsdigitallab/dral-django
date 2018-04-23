@@ -16,27 +16,30 @@
 <body>
   <header>
     {% include 'includes/header.html' %}
-  </header>
-
-  <nav>
-    {% include 'includes/navigation.html' %}
-  </nav>
-  
-  <hr>
-
-  <main>
+    <nav>
+      {% include 'includes/navigation.html' %}
+    </nav>
+    
     {% block title %}<h2>{{ page.title }}</h2>{% endblock %}
     
+  </header>
+  
+  <main>
+    
     {% block main %}
-        {{ page.body|richtext }}
+        {% if page.has_body %}
+            {{ page.body|richtext }}
+        {% endif %}
     {% endblock %}
   </main>
 
-  <footer>
-    {% block footer %}
-        {% include 'includes/footer.html' %}
-    {% endblock %}
-  </footer>
+  {% block footer_wrapper %}
+    <footer>
+      {% block footer %}
+          {% include 'includes/footer.html' %}
+      {% endblock %}
+    </footer>
+  {% endblock %}
 
   {% compress js %}
     <script src="{% static 'vendor/jquery/dist/jquery.min.js' %}"></script>

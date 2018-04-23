@@ -1,1 +1,15 @@
 {% extends "base.html" %}
+
+{% block main %}
+    {{ block.super }}
+    
+    <div id="visualisation">
+      {% block visualisation %}
+          MY VIS 
+      {% endblock %}
+    </div>
+    
+{% endblock %}
+
+{% block footer_wrapper %}
+{% endblock %}

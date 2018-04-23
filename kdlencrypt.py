@@ -4,6 +4,7 @@ import sys
 import re
 from random import randint
 from os import makedirs
+from importlib import import_module
 
 
 class Encryptor(object):
@@ -79,19 +80,24 @@ Commands:
     def get_encrypt_key(self, silent=False):
         ret = None
 
+        mod_name = 'local.py'
         settings_path = os.popen(
-            '''find -iname 'local.py' | grep 'settings/' '''
+            '''find -iname '{}' | grep 'settings/' '''.format(mod_name)
         ).read()
 
         if settings_path:
-            command = '''grep '{}' {}'''.\
-                format(self.password_setting, settings_path.strip(' \n'))
-            code, res = self.exec(command)
-            ret = re.findall("'([^']+)'", res)
-            if ret:
-                ret = ret[0]
-            else:
-                ret = None
+            # ./dral/settings/local.py
+            # -> from .dral.settings import local
+            package_path = re.sub(
+                r'[./\n]+',
+                '.',
+                settings_path.replace(mod_name, '')
+            ).strip('.')
+
+            mod = import_module(
+                '{}.local'.format(package_path),
+            )
+            ret = getattr(mod, self.password_setting, None)
 
         if not ret and not silent:
             print(
@@ -112,13 +118,13 @@ Commands:
 
     def crypt(self, command, show=False):
         if not self.check_archiver():
-            return
+            exit(1)
 
         self.recreate_dirs()
 
         password = self.get_encrypt_key()
         if not password:
-            exit()
+            exit(2)
 
         command = command.format(**{
             'dir': os.path.join(self.data_dir, self.private_dir),
@@ -134,6 +140,7 @@ Commands:
         if code != 0:
             print('ERROR:')
             print(output)
+            exit(3)
         else:
             if show:
                 print(output)
