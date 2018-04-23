@@ -3,7 +3,6 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
-from django.contrib.contenttypes.models import ContentType
 from wagtail.core.models import Site
 
 
@@ -12,9 +11,11 @@ def load_json_content(apps, schema_editor):
 
     if 1:
         # remove all existing content types to avoid duplicate keys
+        ContentType = apps.get_model("contenttypes", "ContentType")
         for ct in ContentType.objects.all():
             ct.delete()
 
+        Site = apps.get_model("wagtailcore", "Site")
         for site in Site.objects.all():
             site.delete()
 
