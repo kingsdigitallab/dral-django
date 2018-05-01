@@ -1,10 +1,10 @@
 {% extends "dral_wagtail/visualisation_page.html" %}
 
 {% block visualisation %}
-<!--
+
     <canvas width="2000" height="1000">
     </canvas>
--->
+
     <div id="svg-test">
         <svg class="chart">
         </svg>
@@ -15,12 +15,11 @@
 {% block footer_scripts %}
     {{ block.super }}
 
-    {# D3Js Library - Link to ext for now #}
+    {# D3Js Library - Link to ext file for now #}
     <script src="https://d3js.org/d3.v5.min.js"></script>
 
     <script>
         $(function() {
-            // elastic_element($('#visualisation canvas'), draw, 100, 15);
             
             window.vis_data = {{vis_data|safe}};
             console.log(vis_data);
@@ -32,48 +31,51 @@
                     var height = d.ratio_omitted * 500;
                     var graph = d3.select('.chart')
                         .append("g")
+                        .attr("class", lang)
                         .append("rect")
                         .attr("class", "bar")
                         .attr("height", height)
-                        .attr("width", width)
+                        .attr("width", 1)
                         .attr("transform", "translate(" + width + ")")
                         .text(d.ratio_omitted);
 
-                        width += 3;
+                        width += 1;
                 });
             });
 
             // Canvas
-            // function draw() {
-            //     var $canvas = $('#visualisation canvas');
-            //     var ctx = $canvas[0].getContext("2d");
-            //     var w = $canvas.prop('width');
-            //     var h = $canvas.prop('height');
+            elastic_element($('#visualisation canvas'), draw, 100, 15);
+
+            function draw() {
+                var $canvas = $('#visualisation canvas');
+                var ctx = $canvas[0].getContext("2d");
+                var w = $canvas.prop('width');
+                var h = $canvas.prop('height');
                 
-            //     ctx.clearRect(0,0,w,h);
+                ctx.clearRect(0,0,w,h);
                 
-            //     graphs_count = 3;
-            //     graph_height = 1.0 * h / graphs_count;
+                graphs_count = 3;
+                graph_height = 1.0 * h / graphs_count;
                 
-            //     var graph_i = 0;
+                var graph_i = 0;
                 
-            //     ctx.font = "30px Georgia";
+                ctx.font = "30px Georgia";
                 
-            //     $.each(window.vis_data, function(lang, rows) {
-            //         var y = graph_height * (graph_i + 1);
-            //         $.each(rows, function(i, row) {
-            //             var bar_size = row.ratio_omitted * graph_height;
-            //             var x = Math.round((1.0 * i / rows.length) * w);
-            //             ctx.fillStyle = "#404040";
-            //             ctx.fillRect(x, y, 1, - bar_size - 30);
-            //         });
-            //         ctx.fillStyle = "#ffffff";
-            //         ctx.fillText(lang, 10, y - 5);
-            //         graph_i += 1;
-            //     });
-            // }
+                $.each(window.vis_data, function(lang, rows) {
+                    var y = graph_height * (graph_i + 1);
+                    $.each(rows, function(i, row) {
+                        var bar_size = row.ratio_omitted * graph_height;
+                        var x = Math.round((1.0 * i / rows.length) * w);
+                        ctx.fillStyle = "#404040";
+                        ctx.fillRect(x, y, 1, - bar_size - 30);
+                    });
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillText(lang, 10, y - 5);
+                    graph_i += 1;
+                });
+            }
             
-            // draw();
+            draw();
         });
     </script>
 {% endblock %}
