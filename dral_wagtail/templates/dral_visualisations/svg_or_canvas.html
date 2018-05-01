@@ -27,20 +27,24 @@
             var width = 0;
 
             $.each(window.vis_data, function(lang, data) {
-                $.each(data, function(i, d) {
-                    var height = d.ratio_omitted * 500;
+                    console.log(this);
                     var graph = d3.select('.chart')
-                        .append("g")
-                        .attr("class", lang)
-                        .append("rect")
-                        .attr("class", "bar")
-                        .attr("height", height)
-                        .attr("width", 1)
-                        .attr("transform", "translate(" + width + ")")
-                        .text(d.ratio_omitted);
+                        .append('g')
+                        .attr('class', lang);
 
-                        width += 1;
-                });
+                    $.each(data, function(i, d) {
+                        var height = d.ratio_omitted * 500;
+
+                        var rectangles = d3.select('g.' + lang)
+                            .append('rect')
+                            .attr('class', 'bar')
+                            .attr('height', height)
+                            .attr('width', 1)
+                            .attr('transform', 'translate(' + width + ')')
+                            .text(d.ratio_omitted);
+
+                            width += 1;
+                    });
             });
 
             // Canvas
