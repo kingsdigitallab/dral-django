@@ -6,7 +6,11 @@
     </canvas>
 
     <div id="svg-test">
-        <svg class="chart">
+        <svg class="chart LT">
+        </svg>
+        <svg class="chart RU">
+        </svg>
+        <svg class="chart POL">
         </svg>
     </div>
 
@@ -24,11 +28,11 @@
             window.vis_data = {{vis_data|safe}};
             console.log(vis_data);
 
-            var width = 0;
-
             $.each(window.vis_data, function(lang, data) {
                     console.log(this);
-                    var graph = d3.select('.chart')
+
+                    var width = 0;
+                    var graph = d3.select('.chart.' + lang)
                         .append('g')
                         .attr('class', lang);
 
