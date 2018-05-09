@@ -85,7 +85,7 @@ h2 {
 /* SVG */
 .bar,
 .bar rect {
-  fill: steelblue;
+  fill: $primary-color;
   //stroke: white;
 }
 
@@ -101,14 +101,19 @@ h2 {
 
 .svg-viz {
   width: 100%;
+
+  h3 {
+    color: $primary-color;
+    margin-bottom: 0;
+  }
 }
 
-.axis path,
-.axis line {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
-}
+// .axis path,
+// .axis line {
+//   fill: none;
+//   stroke: #000;
+//   shape-rendering: crispEdges;
+// }
 
 .grid {
   stroke: #777;
