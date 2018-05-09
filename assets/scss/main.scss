@@ -1,18 +1,123 @@
 /** Your custom scss here **/
 
-body > header {
-    h1, nav {
-        display: inline-block;
+$primary-color: #658f73;
+
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: sans-serif;
+  margin: 0;
+}
+
+a {
+  color: $primary-color;
+  text-decoration: none;
+
+  &:hover {
+    color: darken($primary-color, 20%);
+    text-decoration: underline;
+  }
+}
+
+footer,
+header,
+main {
+  padding: 10px 20px;
+}
+
+header {
+  display: block;
+
+  h1,
+  nav {
+    margin: 0;
+
+    a {
+      display: block;
+      padding: 10px;
     }
-    
-    h1, h2 {
-        margin: 0.3rem;
+  }
+}
+
+nav {
+  .menu {
+    display: block;
+    margin: 0;
+    overflow: hidden;
+    padding-left: 0;
+
+    li {
+      background: $primary-color;
+      color: white;
+      display: inline-block;
+      float: left;
+      list-style: none;
+
+      a {
+        color: white;
+
+        &:hover {
+          ackground: darken($primary-color, 20%);
+        }
+      }
     }
+  }
+}
+
+h2 {
+  clear: both;
+  margin: 0;
+  padding: 10px;
 }
 
 #visualisation {
-    canvas {
-        border: 1px solid red;
-        width: 100%;
-    }
+  canvas {
+    background: #e8e8e8;
+    padding: calc(20px);
+    width: 100%;
+  }
+}
+
+/* SVG */
+.bar,
+.bar rect {
+  fill: steelblue;
+  //stroke: white;
+}
+
+.bar text {
+  fill: #fff;
+  font: 10px sans-serif;
+}
+
+.chart {
+  height: 500px;
+  width: 100%;
+}
+
+.svg-viz {
+  width: 100%;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.grid {
+  stroke: #777;
+  stroke-dasharray: 2,2;
+  shape-rendering: crispEdges;    
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
 }

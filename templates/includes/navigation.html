@@ -3,9 +3,10 @@
 {% block main_menu %}
 
     {% get_site_root as site_root %}
-
+    <ul class="menu">
     {% for child in site_root.get_children.live %}
-        <a href="{% pageurl child %}">{{ child.title }}</a>
+        <li><a href="{% pageurl child %}">{{ child.title }}</a></li>
     {% endfor %}
+    </ul>
 
 {% endblock %}
