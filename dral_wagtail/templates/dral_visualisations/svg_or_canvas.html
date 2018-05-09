@@ -25,7 +25,7 @@
     <script>
         $(function() {
             
-            window.vis_data = {{vis_data|safe}};
+            window.vis_data = {{ vis_data|safe }};
             console.log(vis_data);
 
             $.each(window.vis_data, function(lang, data) {
@@ -36,6 +36,10 @@
                         .append('g')
                         .attr('class', lang);
 
+                    console.log(this.length);
+
+                    var width_increment = 100 / this.length;
+
                     $.each(data, function(i, d) {
                         var height = d.ratio_omitted * 500;
 
@@ -43,11 +47,12 @@
                             .append('rect')
                             .attr('class', 'bar')
                             .attr('height', height)
-                            .attr('width', 1)
-                            .attr('transform', 'translate(' + width + ')')
+                            .attr('width', width_increment + '%')
+                            .attr('x', width + '%')
+                            // .attr('transform', 'translate(' + width + ')')
                             .text(d.ratio_omitted);
 
-                            width += 1;
+                            width += width_increment;
                     });
             });
 
