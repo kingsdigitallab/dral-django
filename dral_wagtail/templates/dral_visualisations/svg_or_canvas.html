@@ -1,10 +1,6 @@
 {% extends "dral_wagtail/visualisation_page.html" %}
 
 {% block visualisation %}
-
-    <canvas width="2000" height="1000">
-    </canvas>
-
     <div id="svg-test" class="svg-viz">
         <h3>LT</h3>
         <svg class="chart LT">
@@ -32,19 +28,34 @@
             console.log(vis_data);
 
             $.each(window.vis_data, function(lang, data) {
-                    console.log(this);
+                console.log(this);
 
-                    var width = 0;
-                    var graph = d3.select('.chart.' + lang)
-                        .append('g')
-                        .attr('class', lang);
+                var width = 0;
+                var graph = d3.select('.chart.' + lang)
+                    .append('g')
+                    .attr('class', lang);
 
-                    console.log(this.length);
+                console.log(this.length);
 
-                    var width_increment = 100 / this.length;
+                var width_increment = 100 / this.length;
 
-                    $.each(data, function(i, d) {
-                        var height = d.ratio_omitted * 500;
+                $.each(data, function(i, d) {
+                    var height = d.ratio_omitted * 500;
+
+                    if (d.ratio_omitted == 1) {
+
+                    var rectangles = d3.select('g.' + lang)
+                        .append('rect')
+                        .attr('class', 'bar omitted')
+                        .attr('height', height)
+                        .attr('width', width_increment + '%')
+                        .attr('x', width + '%')
+                        // To display aligned at the bottom:
+                        // .attr('y', 500 - height)
+                        .text(d.ratio_omitted);
+
+                        width += width_increment;    
+                    } else {
 
                         var rectangles = d3.select('g.' + lang)
                             .append('rect')
@@ -52,46 +63,14 @@
                             .attr('height', height)
                             .attr('width', width_increment + '%')
                             .attr('x', width + '%')
-                            // .attr('transform', 'translate(' + width + ')')
+                            // To display aligned at the bottom:
+                            // .attr('y', 500 - height)
                             .text(d.ratio_omitted);
 
                             width += width_increment;
-                    });
-            });
-
-            // Canvas
-            elastic_element($('#visualisation canvas'), draw, 100, 15);
-
-            function draw() {
-                var $canvas = $('#visualisation canvas');
-                var ctx = $canvas[0].getContext("2d");
-                var w = $canvas.prop('width');
-                var h = $canvas.prop('height');
-                
-                ctx.clearRect(0,0,w,h);
-                
-                graphs_count = 3;
-                graph_height = 1.0 * h / graphs_count;
-                
-                var graph_i = 0;
-                
-                ctx.font = "30px Georgia";
-                
-                $.each(window.vis_data, function(lang, rows) {
-                    var y = graph_height * (graph_i + 1);
-                    $.each(rows, function(i, row) {
-                        var bar_size = row.ratio_omitted * graph_height;
-                        var x = Math.round((1.0 * i / rows.length) * w);
-                        ctx.fillStyle = "#404040";
-                        ctx.fillRect(x, y, 1, - bar_size - 30);
-                    });
-                    ctx.fillStyle = "#ffffff";
-                    ctx.fillText(lang, 10, y - 5);
-                    graph_i += 1;
+                    }
                 });
-            }
-            
-            draw();
+            });
         });
     </script>
 {% endblock %}
