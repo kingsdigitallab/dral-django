@@ -107,22 +107,3 @@ h2 {
     margin-bottom: 0;
   }
 }
-
-// .axis path,
-// .axis line {
-//   fill: none;
-//   stroke: #000;
-//   shape-rendering: crispEdges;
-// }
-
-.grid {
-  stroke: #777;
-  stroke-dasharray: 2,2;
-  shape-rendering: crispEdges;    
-}
-
-.line {
-  fill: none;
-  stroke: steelblue;
-  stroke-width: 1.5px;
-}
