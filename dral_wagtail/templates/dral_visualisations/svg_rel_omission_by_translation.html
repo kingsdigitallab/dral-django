@@ -43,20 +43,18 @@
                     var height = d.ratio_omitted * 100;
 
                     if (d.ratio_omitted == 1) {
+                        var rectangles = d3.select('g.' + lang)
+                            .append('rect')
+                            .attr('class', 'bar omitted')
+                            .attr('height', height + '%')
+                            .attr('width', width_increment + '%')
+                            .attr('x', width + '%')
+                            // To display aligned at the bottom:
+                            // .attr('y', 500 - height)
+                            .text(d.ratio_omitted);
 
-                    var rectangles = d3.select('g.' + lang)
-                        .append('rect')
-                        .attr('class', 'bar omitted')
-                        .attr('height', height + '%')
-                        .attr('width', width_increment + '%')
-                        .attr('x', width + '%')
-                        // To display aligned at the bottom:
-                        // .attr('y', 500 - height)
-                        .text(d.ratio_omitted);
-
-                        width += width_increment;    
+                            width += width_increment;    
                     } else {
-
                         var rectangles = d3.select('g.' + lang)
                             .append('rect')
                             .attr('class', 'bar')
