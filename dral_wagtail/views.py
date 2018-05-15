@@ -59,7 +59,7 @@ order by sc.qt desc
     context['vis_data'] = json.dumps(context['vis_data'])
 
 
-def visualisation_svg_or_canvas(context):
+def visualisation_svg_rel_omission_by_translation(context):
 
     query = r'''
             select
