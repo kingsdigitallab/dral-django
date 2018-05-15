@@ -1,7 +1,6 @@
 {% extends "dral_wagtail/visualisation_page.html" %}
 
 {% block visualisation %}
-
     <div id="svg-test" class="svg-viz">
         <h3>LT</h3>
         <svg class="chart LT">
@@ -29,19 +28,34 @@
             console.log(vis_data);
 
             $.each(window.vis_data, function(lang, data) {
-                    console.log(this);
+                console.log(this);
 
-                    var width = 0;
-                    var graph = d3.select('.chart.' + lang)
-                        .append('g')
-                        .attr('class', lang);
+                var width = 0;
+                var graph = d3.select('.chart.' + lang)
+                    .append('g')
+                    .attr('class', lang);
 
-                    console.log(this.length);
+                console.log(this.length);
 
-                    var width_increment = 100 / this.length;
+                var width_increment = 100 / this.length;
 
-                    $.each(data, function(i, d) {
-                        var height = d.ratio_omitted * 500;
+                $.each(data, function(i, d) {
+                    var height = d.ratio_omitted * 500;
+
+                    if (d.ratio_omitted == 1) {
+
+                    var rectangles = d3.select('g.' + lang)
+                        .append('rect')
+                        .attr('class', 'bar omitted')
+                        .attr('height', height)
+                        .attr('width', width_increment + '%')
+                        .attr('x', width + '%')
+                        // To display aligned at the bottom:
+                        // .attr('y', 500 - height)
+                        .text(d.ratio_omitted);
+
+                        width += width_increment;    
+                    } else {
 
                         var rectangles = d3.select('g.' + lang)
                             .append('rect')
@@ -49,11 +63,13 @@
                             .attr('height', height)
                             .attr('width', width_increment + '%')
                             .attr('x', width + '%')
-                            // .attr('transform', 'translate(' + width + ')')
+                            // To display aligned at the bottom:
+                            // .attr('y', 500 - height)
                             .text(d.ratio_omitted);
 
                             width += width_increment;
-                    });
+                    }
+                });
             });
         });
     </script>
