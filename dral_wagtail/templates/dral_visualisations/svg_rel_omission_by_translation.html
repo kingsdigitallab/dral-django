@@ -1,7 +1,7 @@
 {% extends "dral_wagtail/visualisation_page.html" %}
 
 {% block visualisation %}
-    <div id="svg-test" class="svg-viz">
+    <div class="svg-viz">
         <h3>LT</h3>
         <svg class="chart LT">
         </svg>
@@ -40,14 +40,14 @@
                 var width_increment = 100 / this.length;
 
                 $.each(data, function(i, d) {
-                    var height = d.ratio_omitted * 500;
+                    var height = d.ratio_omitted * 100;
 
                     if (d.ratio_omitted == 1) {
 
                     var rectangles = d3.select('g.' + lang)
                         .append('rect')
                         .attr('class', 'bar omitted')
-                        .attr('height', height)
+                        .attr('height', height + '%')
                         .attr('width', width_increment + '%')
                         .attr('x', width + '%')
                         // To display aligned at the bottom:
@@ -60,7 +60,7 @@
                         var rectangles = d3.select('g.' + lang)
                             .append('rect')
                             .attr('class', 'bar')
-                            .attr('height', height)
+                            .attr('height', height + '%')
                             .attr('width', width_increment + '%')
                             .attr('x', width + '%')
                             // To display aligned at the bottom:

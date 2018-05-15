@@ -86,8 +86,6 @@ h2 {
 .bar,
 .bar rect {
   fill: white;
-  // fill: $primary-color;
-  // stroke: white;
 
   &.omitted {
     fill: yellow;
@@ -100,19 +98,20 @@ h2 {
 }
 
 .chart {
-  background: $primary-color;
-  height: 500px;
-  // height: 25vh; // Dynamic height
+  background: darken($primary-color, 20%);
+  border-top: 1px solid white;
+  box-shadow: inset 0 0 0 2px white;
+  // height: 500px;
+  height: 25vh; // Dynamic height
   width: 100%;
 }
 
 .svg-viz {
+  height: 95vh;
   width: 100%;
 
   h3 {
-    // background: $primary-color;
     color: $primary-color;
     margin-bottom: 0;
-    //padding: 5px 5px 2px;
   }
 }
