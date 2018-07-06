@@ -18,140 +18,70 @@ def view_visualisation(visualisation_code, context):
 def visualisation_relative_omission_by_translation(context):
 
     query = r'''
-select
-    le.string as lemma, la.name as language, sc.qt as freq,
-    coalesce(zc.qt::float, 0.0) omitted,
-    coalesce(zc.qt::float, 0.0) / (sc.qt::float) as ratio_omitted
-from
-    (
-        select lemma_id, language_id, count(*) qt
-        from dral_text_occurence oc
-        group by lemma_id, language_id
-    ) as sc
-    left join
-    (
-        select lemma_id, language_id, count(*) qt
-        from dral_text_occurence oc
-        where zero is true
-        group by lemma_id, language_id
-    ) as zc
-    on (
-        sc.language_id = zc.language_id
-        and sc.lemma_id = zc.lemma_id
-    ),
-    dral_text_language la,
-    dral_text_lemma le
-where sc.language_id = la.id
-and sc.lemma_id = le.id
-and la.name = %s
-order by sc.qt desc
-;
+        select
+            le.string as lemma, la.name as language, sc.qt as freq,
+            coalesce(zc.qt::float, 0.0) omitted,
+            coalesce(zc.qt::float, 0.0) / (sc.qt::float) as ratio_omitted
+        from
+            (
+                select lemma_id, language_id, count(*) qt
+                from dral_text_occurence oc
+                group by lemma_id, language_id
+            ) as sc
+            left join
+            (
+                select lemma_id, language_id, count(*) qt
+                from dral_text_occurence oc
+                where zero is true
+                group by lemma_id, language_id
+            ) as zc
+            on (
+                sc.language_id = zc.language_id
+                and sc.lemma_id = zc.lemma_id
+            ),
+            dral_text_language la,
+            dral_text_lemma le
+        where sc.language_id = la.id
+        and sc.lemma_id = le.id
+        and la.name = %s
+        order by sc.qt desc
+        ;
     '''
 
     data = [
-        (lg, get_rows_from_query(query, [lg])[0:])
+        (lg, get_rows_from_query(query, [lg], rounding=3)[0:])
         for lg
         in ['LT', 'RU', 'POL']
     ]
     context['vis_data'] = OrderedDict(data)
 
-    import json
-    context['vis_data'] = json.dumps(context['vis_data'])
+
+def visualisation_svg_variants_evolution(context):
+    ret = visualisation_relative_omission_by_translation(context)
+    return ret
 
 
 def visualisation_svg_rel_omission_by_translation(context):
-
-    query = r'''
-            select
-                le.string as lemma, la.name as language, sc.qt as freq,
-                coalesce(zc.qt::float, 0.0) omitted,
-                coalesce(zc.qt::float, 0.0) / (sc.qt::float) as ratio_omitted
-            from
-                (
-                    select lemma_id, language_id, count(*) qt
-                    from dral_text_occurence oc
-                    group by lemma_id, language_id
-                ) as sc
-                left join
-                (
-                    select lemma_id, language_id, count(*) qt
-                    from dral_text_occurence oc
-                    where zero is true
-                    group by lemma_id, language_id
-                ) as zc
-                on (
-                    sc.language_id = zc.language_id
-                    and sc.lemma_id = zc.lemma_id
-                ),
-                dral_text_language la,
-                dral_text_lemma le
-            where sc.language_id = la.id
-            and sc.lemma_id = le.id
-            and la.name = %s
-            order by sc.qt desc
-            ;
-            '''
-
-    data = [
-        (lg, get_rows_from_query(query, [lg])[0:])
-        for lg
-        in ['LT', 'RU', 'POL']
-    ]
-    context['vis_data'] = OrderedDict(data)
-
-    import json
-    context['vis_data'] = json.dumps(context['vis_data'])
+    ret = visualisation_relative_omission_by_translation(context)
+    return ret
 
 
 def visualisation_calendar_view(context):
-
-    query = r'''
-            select
-                le.string as lemma, la.name as language, sc.qt as freq,
-                coalesce(zc.qt::float, 0.0) omitted,
-                coalesce(zc.qt::float, 0.0) / (sc.qt::float) as ratio_omitted
-            from
-                (
-                    select lemma_id, language_id, count(*) qt
-                    from dral_text_occurence oc
-                    group by lemma_id, language_id
-                ) as sc
-                left join
-                (
-                    select lemma_id, language_id, count(*) qt
-                    from dral_text_occurence oc
-                    where zero is true
-                    group by lemma_id, language_id
-                ) as zc
-                on (
-                    sc.language_id = zc.language_id
-                    and sc.lemma_id = zc.lemma_id
-                ),
-                dral_text_language la,
-                dral_text_lemma le
-            where sc.language_id = la.id
-            and sc.lemma_id = le.id
-            and la.name = %s
-            order by sc.qt desc
-            ;
-            '''
-
-    data = [
-        (lg, get_rows_from_query(query, [lg])[0:])
-        for lg
-        in ['LT', 'RU', 'POL']
-    ]
-    context['vis_data'] = OrderedDict(data)
-
-    import json
-    context['vis_data'] = json.dumps(context['vis_data'])
+    ret = visualisation_relative_omission_by_translation(context)
+    return ret
 
 
-def get_rows_from_query(query, params):
+def get_rows_from_query(query, params, rounding=None):
     from django.db import connection
     with connection.cursor() as cursor:
         cursor.execute(query, params)
         ret = dictfetchall(cursor)
+
+    if rounding:
+        for row in ret:
+            for k, v in row.items():
+                if isinstance(v, float):
+                    row[k] = round(v, 3)
 
     return ret
 

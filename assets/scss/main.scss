@@ -125,3 +125,29 @@ h2 {
     margin-bottom: 0;
   }
 }
+
+// GN: july 2018
+
+#infobox {
+    display: none;
+    background-color: white;
+    background-opacity: 0.8;
+    border: 2px solid grey;
+    padding: 0.5em;
+    margin: 1rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+.template {
+    display: none;
+}
+
+.overlay {
+    opacity: 0;
+}
+
+.square:hover {
+    stroke: grey;
+}

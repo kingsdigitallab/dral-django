@@ -1,6 +1,7 @@
+import json as pjson
 from django import template
 from wagtail.core.models import Site
-# from django.utils.safestring import mark_safe
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -20,3 +21,18 @@ def get_site_root(context):
         ret = site.root_page
 
     return ret
+
+
+@register.filter
+def json(obj):
+    '''convert python <obj> to a marked-safe, compact json string
+
+    floats are round to 3 decimals
+
+    {{ my_python_var|json }}
+
+    '''
+    return mark_safe(pjson.dumps(
+        obj,
+        separators=(',', ':'),
+    ))

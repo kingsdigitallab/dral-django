@@ -15,3 +15,49 @@
 
 {% endblock %}
 
+{% block footer_scripts %}
+    {{ block.super }}
+    
+    {% block tooltip %}
+    
+      <div id="infobox">
+        infobox content
+      </div>
+    
+      <script>
+        function infobox_dict(dict) {
+            var message = '';
+            $.each(dict, function(k, v) {
+                if (message.length) message += '; ';
+                message += k + ': ' + v;
+            });
+            infobox(message);
+        }
+        function infobox(message) {
+            $('#infobox').html(message);
+            $('#infobox').toggle(!!message);
+        }
+        
+        function round(value) {
+            return round_dec(value, 2);
+        }
+        
+        function round_dec(value, decimals) {
+            return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+        }
+
+        function apply_template(template_name, context) {
+            var ret = $('.template.'+template_name).first().html();
+            
+            $.each(context, function(name, val) {
+                var rgx = new RegExp('\{\{\s*'+name+'\s*\}\}', 'g');
+                ret = ret.replace(rgx, val);
+            });
+
+            return ret;
+        };
+      </script>
+
+    {% endblock %}
+    
+{% endblock %}
