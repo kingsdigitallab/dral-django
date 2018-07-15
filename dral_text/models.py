@@ -96,8 +96,11 @@ class SheetStyle(models.Model):
 class Sentence(models.Model):
     string = models.CharField(max_length=500)
     index = models.IntegerField()
+    #
     language = models.ForeignKey('Language', on_delete=models.PROTECT)
     chapter = models.CharField(max_length=10, blank=True)
+    cell_line = models.IntegerField(default=0, blank=True)
+    cell = models.CharField(max_length=500, blank=True)
 
 
 class Language(models.Model):

@@ -110,6 +110,9 @@ h2 {
 .omitted {
   fill: purple !important;
 }
+.error {
+  fill: red !important;
+}
 
 .square {
   fill: green;
@@ -150,4 +153,97 @@ h2 {
 
 .square:hover {
     stroke: grey;
+}
+
+// ------
+
+.option-selected {
+    background: #f0f0e0;
+}
+
+#settings {
+    /* make the settings body div scrollable */
+    flex-direction: column;
+    height: 90vh;
+
+    position: fixed;
+    left: 5vw;
+    top: 2em;
+    width: 90vw;
+    z-index: 10000;
+    
+    display: none;
+    
+    &.settings-visible {
+        display: block;
+    }
+
+    background-color: white;
+    border: 1px solid grey;
+    box-shadow: .5em .5em .4em #202020;
+    padding: 0;
+}
+
+#settings > div {
+    padding: .5em;
+}
+
+body {
+
+    &.settings-visible {
+        /* html body no longer scrollable when settings model is open*/
+        overflow: hidden;    
+
+        #settings {
+            display: flex;
+        } 
+    }
+}
+
+.settings-body {
+    /* make the settings body div scrollable */
+    flex-grow: 1;
+    overflow-y: auto;
+
+    input[type=checkbox],
+    input[type=radio] {
+        margin-bottom: 0;
+        margin-left: 0.3em;
+        margin-right: 0.1em;
+    }
+
+    label {
+        line-height: 1em;
+        margin: 2px;
+        padding: 0.3em;
+
+        &:hover {
+            background: #e0e0d0;
+        }
+    }
+
+    label,
+    li {
+        /* inline-block to prevent line break between checkboxk and label text */
+        display: inline-block;
+    }
+
+    ul {
+        margin-left: 0;
+    }
+
+    .var-actions {
+        font-size: small;
+
+        a {
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+}
+
+.settings-head {
+    background-color: #1c2434;
+    color: white;
 }

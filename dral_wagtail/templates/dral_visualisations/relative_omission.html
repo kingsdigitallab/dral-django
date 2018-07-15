@@ -1,0 +1,95 @@
+{% load dral_wagtail_tags %}
+
+{% verbatim %}
+  <div class="svg-viz">
+  </div>
+
+  <div class="template viz-chart">
+      <h3>{{language}}</h3>
+      <svg class="chart {{language}}" data-language="{{language}}">
+        <g></g>
+        <rect class="overlay" width="100%" height="100%"></rect>
+      </svg>
+  </div>
+{% endverbatim %}
+
+<script>
+    $(function() {
+        
+        window.vis_data = {{ vis_data|json }};
+
+        // console.log(vis_data);
+        
+        $viz = $('.svg-viz');
+
+        $.each(window.vis_data, function(lang, data) {
+            $viz.append(apply_template(
+                'viz-chart',
+                {'language': lang}
+            ));
+            var $svg_group = $viz.find('g:last');
+            
+            var x = 0;
+            
+            var width = 100.0 / this.length;
+            var width_rounded = round(width)
+
+            $.each(data, function(i, d) {
+                var height_rounded = round(d.ratio_omitted * 100);
+
+                var omitted_class = (d.ratio_omitted == 1) ? 'omitted' : '';
+
+                var rect = d3.select($svg_group[0])
+                .append('rect')
+                .attr('class', 'bar ' + omitted_class)
+                .attr('height', height_rounded + '%')
+                .attr('width', width_rounded + '%')
+                .attr('x', round(x) + '%')
+                // To display aligned at the bottom:
+                // .attr('y', 500 - height)
+                .text(''+ d.lemma+': ' + d.omitted + '/' + d.freq);
+
+                x += width;
+            });
+            
+            // mouseover 
+            // We don't attach an event to every bar:
+            // a) that would be prohibitive
+            // b) user couldn't select lemma without omissions (0-height bar)
+            // See https://bl.ocks.org/mbostock/3902569
+            d3.select($viz.find('rect.overlay:last')[0]).on(
+                'mousemove', function() {
+                    var xm = d3.mouse(this)[0];
+                    // TODO: better way to get the index from mouse coord
+                    var x0 = 0, x1 = $svg_group.parent().width();
+                    var idx = Math.floor(xm / (x1 - x0) * data.length);
+                    infobox_dict(data[idx]);
+                }
+            ).on(
+                'mouseout', function() {
+                    infobox();
+                }
+            );
+        });
+    });
+    
+    {% comment %}
+      JSON input format:
+          
+      Lng x Lemma
+    
+      {'LT':
+        [
+          {
+            freq: 2725,
+            language:"LT",
+            lemma:"SAY*/SAID",
+            omitted:106,
+            ratio_omitted: 0.038,
+          },
+          <...>
+        ],
+        <...>
+      }
+    {% endcomment %}
+</script>

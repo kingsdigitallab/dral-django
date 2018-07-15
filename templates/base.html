@@ -14,12 +14,14 @@
   {% endcompress %}
 </head>
 <body>
-  <header>
-    {% include 'includes/header.html' %}
-    <nav>
-      {% include 'includes/navigation.html' %}
-    </nav>
-  </header>
+  {% block header %}
+    <header>
+      {% include 'includes/header.html' %}
+      <nav>
+        {% include 'includes/navigation.html' %}
+      </nav>
+    </header>
+  {% endblock %}
   
   <main>
     {% block title %}<h2>{{ page.title }}</h2>{% endblock %}

@@ -1,14 +1,27 @@
 {% extends "base.html" %}
+{% load staticfiles compress wagtailcore_tags dral_wagtail_tags %}
+
+{% block header %}
+    <header>
+        <a href="/">DRaL</a> 
+        &gt;
+        <a href="/visualisations/">Visualisations</a>
+        &gt;
+        <span class="page-title">{{ page.title }}</span>
+        <a class="toggle-settings" href="#">[settings]</a>
+    </header>
+{% endblock %}
+
+{% block title %}{% endblock %}
 
 {% block main %}
     {{ block.super }}
+
+    {% include 'dral_visualisations/fragments/settings.html' %}
     
     <div id="visualisation">
-      {% block visualisation %}
-          MY VIS 
-      {% endblock %}
+        Loading visualisation...
     </div>
-    
 {% endblock %}
 
 {% block footer_wrapper %}
@@ -17,6 +30,10 @@
 
 {% block footer_scripts %}
     {{ block.super }}
+    <!-- script src="{% static 'vendor/vue/vue.js' %}"></script -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    {# D3Js Library - Link to ext file for now #}
+    <script src="https://d3js.org/d3.v5.min.js"></script>
     
     {% block tooltip %}
     
@@ -56,6 +73,114 @@
 
             return ret;
         };
+
+        // -------------------------------
+        
+      </script>
+                
+      <script type="text/javascript">
+        $(function() {
+            var $win = $(window);
+            var $body = $('body');
+            var $settings = $('#settings');
+            var $fragment = $('#visualisation');
+            var config = {{config|json}};
+            var vue_config = new_vue_config(config);
+            
+            $win.on('keyup', function(ev) {
+                if (ev.which == 27) {
+                    return toggle_settings();
+                }
+            });
+            
+            $body.on('click', '.toggle-settings', function() {
+                return toggle_settings();
+            });
+
+            function toggle_settings() {
+                $body.toggleClass('settings-visible');
+                if (!$body.hasClass('settings-visible')) {
+                    request_fragment();
+                }
+                return false;
+            }
+            
+            function new_vue_config(config) {
+                var ret = new Vue({
+                    el: '#settings .settings-body',
+                    data: {
+                        vars: config
+                    },
+                    methods: {
+                        'select_all': function(avar) {
+                            $.each(avar.options, function(idx, option) {
+                                option.selected = true;
+                            });
+                        },
+                        'select_none': function(avar) {
+                            $.each(avar.options, function(idx, option) {
+                                option.selected = false;
+                            });
+                        },
+                        'get_request_data': function() {
+                            // We convert the config vars into a 
+                            // dictionary: {field: [values]}
+                            var ret = {};
+                            $.each(this.vars, function(idx, avar) {
+                                var values = [];
+                                if (avar.type == 'single') {
+                                    // selection is help in var.selected
+                                    ret[avar.key] = avar.selected;
+                                } else {
+                                    // selctions are held in var.options.X.selected
+                                    $.each(avar.options, function(idx, option) {
+                                        if (option.selected) {
+                                            values.push(option.key);
+                                        }
+                                    });
+                                    ret[avar.key] = values.join(',');
+                                }
+                            });
+                            console.log(ret);
+                            return ret;
+                        }
+                    }
+                });
+                return ret;
+            }
+            
+            function request_fragment() {
+                $fragment.stop(true, true).fadeTo('slow', 0.2);
+                
+                var url = document.location.href;
+                
+                url = url.replace(/(#|\?).*/i, '');
+                params = vue_config.get_request_data();
+                params.js = 1;
+
+                var req = $.getJSON({
+                    url: url,
+                    data: params,
+                })
+                
+                req.done(function(data, textStatus, jqXHR) {
+                    Vue.set(vue_config, 'vars', data.config);
+                    replace_fragment(data);
+                    $fragment.stop(true, true).css('opacity', 1);
+                });
+            }
+            request_fragment();
+            
+            function replace_fragment(data) {
+                $fragment.html(data.html);
+                $('.page-title').html(data.page_title);
+                if (history.pushState) {
+                    var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?' + data.qs;
+                    window.history.pushState({path:newurl},'',newurl);
+                }
+            }
+            
+        });
       </script>
 
     {% endblock %}

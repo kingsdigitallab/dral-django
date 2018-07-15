@@ -1,0 +1,39 @@
+{% load staticfiles wagtailcore_tags %}
+
+{% verbatim %}
+<div id="settings">
+    <div class="settings-head">
+        <h3>Settings</h3>
+    </div>
+    <div class="settings-body">
+        <div v-for="v in vars" class="settings-field">
+            <template v-if="!v.hidden">
+                <h4>
+                    {{ v.name }}
+                    <span v-if="v.type == 'multi'" class="var-actions">
+                        <a role="button" v-on:click="select_all(v)">Select all</a>
+                        -
+                        <a role="button" v-on:click="select_none(v)">Select none</a>
+                    </span>
+                </h4>
+                <ul>
+                    <li v-for="option in v.options">
+                        <template v-if="v.type == 'multi'">
+                            <label :class="{'option-selected': option.selected}">
+                                <input type="checkbox" v-model="option.selected" v-bind:name="option.key" />
+                                {{ option.name }}
+                            </label>
+                        </template>
+                        <template v-if="v.type == 'single'">
+                            <label :class="{'option-selected': option.key == v.selected}">
+                                <input type="radio" v-model="v.selected" v-bind:value="option.key" v-bind:name="v.key" />
+                                {{ option.name }}
+                            </label>
+                        </template>
+                    </li>
+                </ul>
+            </template>
+        </div>
+    </div>
+</div>
+{% endverbatim %}

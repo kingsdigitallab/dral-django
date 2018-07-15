@@ -11,19 +11,184 @@ from dral_text.models import Language, Lemma, Occurence, Sentence, SheetStyle
 
 
 class Command(KDLCommand):
-    '''
-    Usage:
-    ./manage.py drtext import research_data/private/benjy/content.xml
+    help = '''
+DRaL research data management toolbox
+
+Usage: ACTION [OPTIONS]
+
+ACTIONS:
+
+import PATH_TO_CONTENT.XML
+    import occurence data from a spreadsheet into the relational DB
+    PATH_TO_CONTENT.XML: is a content.xml obtained by unzipping a .ods file
+    The .ods file is a spreadsheet saved with LibreOffice Calc.
+    e.g. ./manage.py drtext import research_data/private/benjy/content.xml
+
+clean
+    compute occurence fields derived from occurence data imported from
+    spreadsheet research_data/private/spreadsheets/S_F_alligned_ru.ods
+
+clear
+    remove all the occurence data from the database
+
+import_sentences PATH_TO_CONTENT.XML
+    import_sentences
 
     ce52 is yellow
     '''
-    help = 'DRaL Text Processing'
 
     def action_clear(self):
         [o.delete() for o in Occurence.objects.all()]
         [o.delete() for o in Sentence.objects.all()]
         [o.delete() for o in Lemma.objects.all()]
         [o.delete() for o in SheetStyle.objects.all()]
+
+    def action_import(self):
+        Language.add_default_languages()
+        self.languages = Language.get_languages()
+
+        file_path = self.aargs.pop()
+        content = self._read_file(file_path, encoding='utf-8')
+
+        import re
+        content = re.sub(r'(table|office|style|text|draw|fo):', '', content)
+
+        root = ET.fromstring(content)
+
+        table = root.find(".//table")
+
+        self.chapter = table.attrib['name']
+
+        # ### COLORS
+        print('Importing sheet styles...')
+
+        [o.delete() for o in SheetStyle.objects.filter(chapter=self.chapter)]
+
+        for style in root.findall(".//style"):
+            name = style.attrib['name']
+            properties = style.find('table-cell-properties')
+            color = '?'
+            if properties is not None:
+                color = properties.attrib.get('background-color', color)
+            style, _ = SheetStyle.objects.get_or_create(
+                name=name, chapter=self.chapter)
+            style.color = color
+            style.save()
+            # print(name, color)
+
+        # return
+
+        # ### STRINGS
+        # Import the spreadsheet rows
+        # identify blocks of rows that belong to the same english lemma
+        # extract and import the occurence strings and metadata
+        print('Importing strings...')
+
+        # root = tree.getroot()
+        # <table:table table:name="BENJY" table:style-name="ta1">
+
+        values = [None for i in range(0, 2024)]
+
+        line = 0
+
+        block = []
+        for cols in self.get_values_next_row(table, values):
+            line += 1
+
+            added = False
+            anchor = values[4][0].strip()
+
+            # we add each line into the block
+            # if there is no value in col 3: we process this block and
+            # issue a new empty one
+            if anchor:
+                if not values[3][0]:
+                    # contains sentence numbers, we add it to the block first
+                    if re.match(r'\d+', anchor):
+                        added = True
+                        block.append(values[:])
+                    if block:
+                        self.process_lemma_block(block, line - len(block))
+                    block = []
+
+            # add the line to the block
+            if anchor and not added:
+                block.append(values[:])
+
+    def action_import_sentences(self):
+        print('Delete all sentences')
+        [o.delete() for o in Sentence.objects.all()]
+
+        self.languages = Language.get_languages()
+
+        import os
+
+        while self.aargs:
+            ods_path = self.aargs.pop()
+            file_path = '/tmp/dral_sent_content.xml'
+            os.system('unzip -p %s content.xml > %s' % (ods_path, file_path))
+            content = self._read_file(file_path, encoding='utf-8')
+
+            import re
+            content = re.sub(
+                r'(table|office|style|text|draw|fo):', '', content
+            )
+
+            root = ET.fromstring(content)
+
+            for table in root.findall(".//table"):
+                table_name = table.attrib['name']
+
+                match = re.match(
+                    '^(BENJY|QUENTIN|JASON|DILSEY)_([A-Z]{2,3})$',
+                    table_name
+                )
+                if not match:
+                    print('WARNING: Skipped table %s' % table_name)
+                    continue
+                chapter, language_name = match.group(1), match.group(2)
+                print(chapter, language_name)
+
+                if language_name == 'PL':
+                    language_name = 'POL'
+
+                language = Language.objects.filter(name=language_name).first()
+
+                if not language:
+                    print(
+                        'WARNING: Skipped table %s (unrecognised language %s)'
+                        % (table_name, language_name)
+                    )
+                    continue
+
+                # import table
+                values = [None for i in range(0, 2024)]
+
+                line = 0
+
+                for cols in self.get_values_next_row(table, values):
+                    line += 1
+
+                    if line % 2 == 0:
+                        # print(line)
+
+                        string = string = values[1][0]
+                        if string is None:
+                            string = ''
+                        if len(string) > 500:
+                            string = string[0:500]
+
+                        index = int(values[0][0] or 0)
+
+                        sentence = Sentence(
+                            string=string,
+                            language=language,
+                            index=index,
+                            chapter=chapter,
+                            cell_line=line,
+                            cell=string,
+                        )
+                        sentence.save()
 
     def action_clean(self):
         import difflib
@@ -98,75 +263,6 @@ class Command(KDLCommand):
             occurence.string = v
 
             occurence.save()
-
-    def action_import(self):
-        Language.add_default_languages()
-        self.languages = Language.get_languages()
-
-        file_path = self.aargs.pop()
-        content = self._read_file(file_path, encoding='utf-8')
-
-        import re
-        content = re.sub(r'(table|office|style|text|draw|fo):', '', content)
-
-        root = ET.fromstring(content)
-
-        table = root.find(".//table")
-
-        self.chapter = table.attrib['name']
-
-        # ### COLORS
-        print('Importing sheet styles...')
-
-        [o.delete() for o in SheetStyle.objects.filter(chapter=self.chapter)]
-
-        for style in root.findall(".//style"):
-            name = style.attrib['name']
-            properties = style.find('table-cell-properties')
-            color = '?'
-            if properties is not None:
-                color = properties.attrib.get('background-color', color)
-            style, _ = SheetStyle.objects.get_or_create(
-                name=name, chapter=self.chapter)
-            style.color = color
-            style.save()
-            # print(name, color)
-
-        # return
-
-        # ### STRINGS
-        print('Importing strings...')
-
-        # root = tree.getroot()
-        # <table:table table:name="BENJY" table:style-name="ta1">
-
-        values = [None for i in range(0, 2024)]
-
-        line = 0
-
-        block = []
-        for cols in self.get_values_next_row(table, values):
-            line += 1
-
-            added = False
-            anchor = values[4][0].strip()
-
-            # we add each line into the block
-            # if there is no value in col 3: we process this block and
-            # issue a new empty one
-            if anchor:
-                if not values[3][0]:
-                    # contains sentence numbers, we add it to the block first
-                    if re.match(r'\d+', anchor):
-                        added = True
-                        block.append(values[:])
-                    if block:
-                        self.process_lemma_block(block, line - len(block))
-                    block = []
-
-            # add the line to the block
-            if anchor and not added:
-                block.append(values[:])
 
     def show_message(self, message, line_number, status='WARNING'):
         print('{}: line {}, {}'.format(status, line_number, message))
@@ -375,9 +471,10 @@ class Command(KDLCommand):
             elif child.tag == 'span':
                 ret += self.get_text_from_element(child)
             else:
-                raise Exception(
-                    'Unknown element in <cell><p> {}'.format(
-                        child.tag))
+                if 0:
+                    raise Exception(
+                        'Unknown element in <cell><p> {}'.format(
+                            child.tag))
             ret += child.tail or ''
 
         return ret.strip()

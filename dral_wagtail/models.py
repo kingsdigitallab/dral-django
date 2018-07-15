@@ -95,5 +95,6 @@ class VisualisationPage(RichPage):
             'page': self,
             'request': request,
         }
-        from .views import view_visualisation
-        return view_visualisation(self.visualisation_code, context)
+        from .views import Visualisation
+        viz = Visualisation()
+        return viz.process_request(self.visualisation_code, context, request)
