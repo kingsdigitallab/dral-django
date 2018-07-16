@@ -28,6 +28,7 @@
                 {'language': lang}
             ));
             var $svg_group = $viz.find('g:last');
+            var $svg = $svg_group.parent();
 
             var width = 0;
 
@@ -61,13 +62,17 @@
                   width += width_increment;
                   counter++;
 
-                if (counter == 100) {
+                if (width+width_increment > $svg.width()) {
                   y += 20;
                   counter = 0;
                   width = 0;
                 }
             });
+           
+           
+           $svg.height(y);
         });
+        
         // mouseover 
         // TODO: review performances...
         // We don't attach an event to every bar:

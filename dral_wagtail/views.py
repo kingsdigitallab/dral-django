@@ -42,9 +42,15 @@ class Visualisation(object):
             {
                 'key': 'sort',
                 'default': 'frequency',
-                'options': ['frequency', 'alphabetically'],
-                'name': 'Sort lemmas by',
+                'options': ['frequency', 'name', 'omission'],
+                'name': 'Sort by',
                 'type': 'single',
+            },
+            {
+                'key': 'freq-min',
+                'default': 0,
+                'name': 'Minimum frequency',
+                'type': 'int',
             },
         ]
 
@@ -103,7 +109,8 @@ class Visualisation(object):
                 (
                     select lemma_id, language_id, count(*) qt
                     from dral_text_occurence oc
-                    where zero is true
+                    where chapter = ANY(%s)
+                    and zero is true
                     group by lemma_id, language_id
                 ) as zc
                 on (
@@ -113,14 +120,19 @@ class Visualisation(object):
                 dral_text_language la,
                 dral_text_lemma le
             where sc.language_id = la.id
+            and sc.qt >= %s
             and sc.lemma_id = le.id
             and la.name = %s
         '''
 
         sort_by = self.config.get('sort', True)
-        if sort_by == 'alphabetically':
+        if sort_by == 'name':
             query += '''
                 order by lemma
+            '''
+        elif sort_by == 'omission':
+            query += '''
+                order by ratio_omitted desc
             '''
         else:
             query += '''
@@ -129,8 +141,14 @@ class Visualisation(object):
 
         chapters = [c.upper() for c in self.config.get('chapters')]
 
+        freq_min = self.config.get('freq-min', 0)
+
         data = [
-            (lg, get_rows_from_query(query, [chapters, lg], rounding=3)[0:])
+            (lg, get_rows_from_query(
+                query,
+                [chapters, chapters, freq_min, lg],
+                rounding=3
+            )[0:])
             for lg
             in ['LT', 'RU', 'POL']
         ]

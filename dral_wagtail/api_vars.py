@@ -23,18 +23,19 @@ class API_Vars(object):
 
         options_selected = var.get('selected', [])
         options_default = var.get('default', [])
-        if var['options'] and not isinstance(var['options'][0], dict):
-            options = []
-            for name in var['options']:
-                option_key = get_key_from_name(name)
-                options.append({
-                    'key': option_key,
-                    'name': name,
-                    'selected': option_key in options_selected,
-                    'default': option_key in options_default,
-                })
+        if 'options' in var:
+            if var['options'] and not isinstance(var['options'][0], dict):
+                options = []
+                for name in var['options']:
+                    option_key = get_key_from_name(name)
+                    options.append({
+                        'key': option_key,
+                        'name': name,
+                        'selected': option_key in options_selected,
+                        'default': option_key in options_default,
+                    })
 
-            var['options'] = options
+                var['options'] = options
 
         assert(var.get('key') or var.get('name'))
         assert(var.get('type'))
@@ -81,35 +82,52 @@ class API_Vars(object):
         values = []
         '''
 
-        if hasattr(values, 'split'):
-            values = values.split(',')
+        if 'options' in self.vars[akey]:
+            if hasattr(values, 'split'):
+                values = values.split(',')
 
-        if values:
-            values = [v.strip() for v in values]
+            if values:
+                values = [v.strip() for v in values]
 
-        for option in self.vars[akey]['options']:
-            if values is None:
-                option['selected'] = option['default']
-                continue
-            option['selected'] = ('all' in values) or (option['key'] in values)
+            for option in self.vars[akey]['options']:
+                if values is None:
+                    option['selected'] = option['default']
+                    continue
+                option['selected'] = ('all' in values)\
+                    or (option['key'] in values)
+        else:
+            value = values
+            if value in ['', None]:
+                value = self.vars[akey]['default']
+            if self.vars[akey]['type'] == 'int':
+                value = int(value)
+            self.vars[akey]['value'] = value
 
     def get(self, akey, first=False, prop='key'):
-        ret = [
-            option.get(prop)
-            for option
-            in self.vars[akey]['options']
-            if option.get('selected')
-        ]
+        if 'options' in self.vars[akey]:
+            ret = [
+                option.get(prop)
+                for option
+                in self.vars[akey]['options']
+                if option.get('selected')
+            ]
 
-        if first:
-            ret = ret[0]
+            if first:
+                ret = ret[0]
+        else:
+            ret = self.vars[akey]['value']
+            if self.vars[akey]['type'] == 'int':
+                ret = int(ret)
 
         return ret
 
     def get_str(self, akey, first=False):
         ret = self.get(akey, first)
-        ret = ','.join(ret)
-        return ret
+
+        if isinstance(ret, list):
+            ret = ','.join(ret)
+
+        return '%s' % ret
 
     def get_query_string(self):
         import urllib

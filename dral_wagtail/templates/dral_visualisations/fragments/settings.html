@@ -16,22 +16,27 @@
                         <a role="button" v-on:click="select_none(v)">Select none</a>
                     </span>
                 </h4>
-                <ul>
-                    <li v-for="option in v.options">
-                        <template v-if="v.type == 'multi'">
-                            <label :class="{'option-selected': option.selected}">
-                                <input type="checkbox" v-model="option.selected" v-bind:name="option.key" />
-                                {{ option.name }}
-                            </label>
-                        </template>
-                        <template v-if="v.type == 'single'">
-                            <label :class="{'option-selected': option.key == v.selected}">
-                                <input type="radio" v-model="v.selected" v-bind:value="option.key" v-bind:name="v.key" />
-                                {{ option.name }}
-                            </label>
-                        </template>
-                    </li>
-                </ul>
+                <template v-if="v.type == 'int'">
+                    <input type="number" v-model="v.value" />
+                </template>
+                <template v-if="v.options">
+                    <ul>
+                        <li v-for="option in v.options">
+                            <template v-if="v.type == 'multi'">
+                                <label :class="{'option-selected': option.selected}">
+                                    <input type="checkbox" v-model="option.selected" v-bind:name="option.key" />
+                                    {{ option.name }}
+                                </label>
+                            </template>
+                            <template v-if="v.type == 'single'">
+                                <label :class="{'option-selected': option.key == v.selected}">
+                                    <input type="radio" v-model="v.selected" v-bind:value="option.key" v-bind:name="v.key" />
+                                    {{ option.name }}
+                                </label>
+                            </template>
+                        </li>
+                    </ul>
+                </template>
             </template>
         </div>
     </div>
