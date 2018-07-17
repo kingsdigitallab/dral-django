@@ -118,6 +118,8 @@ class API_Vars(object):
             ret = self.vars[akey]['value']
             if self.vars[akey]['type'] == 'int':
                 ret = int(ret)
+            if self.vars[akey]['type'] == 'str':
+                ret = str(ret)
 
         return ret
 

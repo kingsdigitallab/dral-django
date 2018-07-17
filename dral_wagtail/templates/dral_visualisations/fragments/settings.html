@@ -11,13 +11,16 @@
                 <h4>
                     {{ v.name }}
                     <span v-if="v.type == 'multi'" class="var-actions">
-                        <a role="button" v-on:click="select_all(v)">Select all</a>
+                        <a role="button" href="#" v-on:click.stop.prevent="select_all(v)">Select all</a>
                         -
-                        <a role="button" v-on:click="select_none(v)">Select none</a>
+                        <a role="button" href="#" v-on:click.stop.prevent="select_none(v)">Select none</a>
                     </span>
                 </h4>
                 <template v-if="v.type == 'int'">
-                    <input type="number" v-model="v.value" />
+                    <input class="setting-input" type="number" v-model="v.value" />
+                </template>
+                <template v-if="v.type == 'str'">
+                    <input class="setting-input" type="text" v-model="v.value" />
                 </template>
                 <template v-if="v.options">
                     <ul>

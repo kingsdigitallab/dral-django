@@ -28,15 +28,17 @@ class Visualisation(object):
             {
                 'key': 'viz',
                 'default': 'relative_omission',
-                'options': ['relative_omission', 'relative_omission_calendar'],
+                'options': ['relative_omission',
+                            'relative_omission_calendar',
+                            'variants_progression'],
                 'name': 'Visualisation',
                 'type': 'single',
             },
             {
-                'key': 'chapters',
+                'key': 'chapter',
                 'default': ['benjy', 'quentin', 'jason', 'dilsey'],
                 'options': ['benjy', 'quentin', 'jason', 'dilsey'],
-                'name': 'Chapters',
+                'name': 'Chapter',
                 'type': 'multi',
             },
             {
@@ -51,6 +53,19 @@ class Visualisation(object):
                 'default': 0,
                 'name': 'Minimum frequency',
                 'type': 'int',
+            },
+            {
+                'key': 'lemma',
+                'default': 'SAY*/SAID',
+                'name': 'Lemma',
+                'type': 'str',
+            },
+            {
+                'key': 'language',
+                'default': ['lt', 'pol', 'ru'],
+                'options': ['lt', 'pol', 'ru'],
+                'name': 'Language',
+                'type': 'multi',
             },
         ]
 
@@ -90,6 +105,72 @@ class Visualisation(object):
                 'dral_wagtail/visualisation_page.html',
                 self.context
             )
+
+    def visualisation_variants_progression(self):
+        query = r'''
+            select oc.chapter as ch,
+                oc.sentence_index as sidx,
+                oc.string as word,
+                oc.lemma_group as grp,
+                oc.zero as omitted,
+                oc.paraphrase as para,
+                oc.replace as repl
+            from dral_text_occurence oc
+            join dral_text_language la
+            on (oc.language_id = la.id)
+            join dral_text_lemma le
+            on (oc.lemma_id = le.id)
+            where la.name = %s
+            and le.string = %s
+            and oc.chapter = ANY(%s)
+            order by array_position(%s, oc.chapter::text),
+            sentence_index
+            ;
+        '''
+
+        lemma = self.config.get('lemma', 'DOORS')
+        chapters = [c.upper() for c in self.config.get('chapter')]
+        languages = [c.upper() for c in self.config.get('language')]
+
+        data = OrderedDict()
+
+        for lg in languages:
+            variants = {}
+            # fetch all the occurrences
+            words = get_rows_from_query(
+                query,
+                [lg, lemma, chapters, chapters],
+                rounding=3
+            )
+
+            # build variants table
+            word_count = 0
+            for word in words:
+                if word['omitted']:
+                    continue
+                word_count += 1
+                k = word['ch'] + '-' + str(word['grp'])
+                variants[k] = variants.get(k, 0) + 1
+
+            # TODO: find a way to unify lemma across chapters!
+            sum = word_count
+            variants_data = OrderedDict()
+            for k, c in sorted(variants.items(), key=lambda v: -v[1]):
+                variants_data[k] = {
+                    'count': c,
+                    'color': round(sum / word_count, 4)
+                }
+                sum -= c
+
+            # print(variants_data)
+
+            language_data = {
+                'words': words,
+                'variants': variants_data,
+            }
+            data[lg] = language_data
+
+        self.context['vis_data'] = data
 
     def visualisation_relative_omission(self):
 
@@ -139,7 +220,7 @@ class Visualisation(object):
                 order by sc.qt desc
             '''
 
-        chapters = [c.upper() for c in self.config.get('chapters')]
+        chapters = [c.upper() for c in self.config.get('chapter')]
 
         freq_min = self.config.get('freq-min', 0)
 

@@ -107,6 +107,17 @@ h2 {
   width: 100%;
 }
 
+.variants {
+  .omitted {
+    fill: #ff8080 !important;
+  }
+}
+
+new-chapter {
+    fill: brown;
+    
+}
+
 .omitted {
   fill: purple !important;
 }
@@ -245,4 +256,12 @@ body {
 .settings-head {
     background-color: #1c2434;
     color: white;
+}
+
+.setting-input {
+    margin-left: 40px;    
+}
+
+.highlighted {
+    fill: orange;
 }

@@ -128,7 +128,7 @@
                             var ret = {};
                             $.each(this.vars, function(idx, avar) {
                                 var values = [];
-                                if (avar.type == 'int') {
+                                if (avar.type == 'int' || avar.type == 'str') {
                                     // selection is help in var.selected
                                     ret[avar.key] = avar.value;
                                 } else if (avar.type == 'single') {
