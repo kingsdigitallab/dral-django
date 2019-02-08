@@ -6,7 +6,6 @@ from kdl_ldap.signal_handlers import \
 
 kdl_ldap_register_signal_hadlers()
 
-
 admin.autodiscover()
 
 urlpatterns = [
@@ -17,7 +16,6 @@ urlpatterns = [
     path('wagtail/', include('wagtail.admin.urls')),
     path('documents/', include('wagtail.documents.urls')),
     path('', include('wagtail.core.urls')),
-    path('search/', include('wagtail.search.urls')),
 
 ]
 
