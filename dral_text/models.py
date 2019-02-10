@@ -33,9 +33,14 @@ OR
 
 class Lemma(models.Model):
     '''Represents a lemma in English'''
-    string = models.CharField(max_length=20, unique=True)
+    string = models.CharField(max_length=20)
+    '''Comma separated list of forms'''
+    forms = models.CharField(max_length=200, blank=True)
     '''This will be EN'''
     language = models.ForeignKey('Language', on_delete=models.PROTECT)
+
+    class Meta:
+        unique_together = [['string', 'forms']]
 
 
 class Occurence(models.Model):
@@ -45,7 +50,7 @@ class Occurence(models.Model):
     '''
     # FIELDS IMPORTED STRAIGHT FROM THE SPREADSHEET
     # the text content of the cell
-    cell = models.CharField(max_length=80, blank=True)
+    cell = models.CharField(max_length=200, blank=True)
     # the style code (-> SheetStyle.name)
     cell_style = models.CharField(max_length=10, blank=True)
     # row
@@ -83,9 +88,12 @@ class Occurence(models.Model):
     # it is the lemma in the language of the text (i.e. different from .lemma)
     lemma_group = models.IntegerField()
 
+    class Meta:
+        unique_together = [['chapter', 'lemma', 'cell_col', 'language']]
+
 
 class SheetStyle(models.Model):
-    '''A style in that sheet'''
+    '''A style in a sheet'''
     name = models.CharField(max_length=10)
     # e.g. #ffff00, transparent
     color = models.CharField(max_length=15)

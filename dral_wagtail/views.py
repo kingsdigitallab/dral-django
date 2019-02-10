@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from collections import OrderedDict
 from dral_wagtail.api_vars import API_Vars
+from django.utils.text import slugify
 
 
 class Visualisation(object):
@@ -220,7 +221,7 @@ class Visualisation(object):
                 order by sc.qt desc
             '''
 
-        chapters = [c.upper() for c in self.config.get('chapter')]
+        chapters = [slugify(c) for c in self.config.get('chapter')]
 
         freq_min = self.config.get('freq-min', 0)
 
