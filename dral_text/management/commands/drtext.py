@@ -7,11 +7,13 @@ Created on 19 April 2018
 from dral_wagtail.management.commands._kdlcommand import KDLCommand
 import xml.etree.ElementTree as ET
 import re
-from dral_text.models import Language, Lemma, Occurence, Sentence, SheetStyle
-from django.utils.text import slugify
+import os
+from dral_text.models import (
+    Language, Lemma, Occurence, Sentence, SheetStyle, Chapter
+)
 from collections import OrderedDict
 
-MAX_CELL_PER_ROW = 2024
+MAX_CELL_PER_ROW = 2000
 MAX_CELL_LENGTH = 200
 
 
@@ -49,39 +51,37 @@ import_sentences PATH_TO_CONTENT.XML
     def action_import(self):
         Language.add_default_languages()
         self.languages = Language.get_languages()
+        from django.conf import settings
+        self.DRAL_REFERENCE_LANGUAGE = settings.DRAL_REFERENCE_LANGUAGE
 
         file_path = self.aargs.pop()
 
         root = self.get_element_tree_from_file(file_path)
 
-        for table in root.findall(".//table"):
-            self.import_table(table, root)
-            # break
+        if root is not None:
+            for table in root.findall(".//table"):
+                self.import_table(table, root)
+                # break
+        else:
+            self.show_message(
+                'File "{}" is empty or not found.'.format(file_path),
+                0,
+                'ERROR'
+            )
 
-    def import_table(self, xml_table, xml_root):
+    def _init_import_table(self, chapter):
         '''
-        # Import the spreadsheet/table rows
-        # identify blocks of rows that belong to the same english lemma
-        # extract and import the occurrence strings and metadata
+        Initialise the import statistics.
+        Read and cache all occurrences and Lemmas from DB to speed up
+        the import of a table.
         '''
-        table_name = xml_table.attrib['name']
-        skipped = ' (skipped)' if table_name.startswith('_') else ''
-        print('Table "%s"%s' % (table_name, skipped))
-        if skipped:
-            return
 
         self.first_block_line_types = None
 
-        # todo: chapter should be a model
-        self.chapter = slugify(table_name)
-
-        print('Importing styles...')
-        self.reimport_table_styles(xml_root, self.chapter)
-
-        print('Importing strings...')
         self.stats = {
             'cells.created': 0,
             'cells.updated': 0,
+            'cells.deleted': 0,
             'lemmas.created': 0,
             'lemmas.updated': 0,
         }
@@ -92,14 +92,14 @@ import_sentences PATH_TO_CONTENT.XML
         # read all the occurrences records for that chapter
         self.occurrences = {
             '%s:%s (%s):%s:%s' % (
-                obj.chapter,
-                obj.lemma.name,
+                obj.chapter.slug,
+                obj.lemma.string,
                 obj.lemma.forms,
                 obj.language_id,
                 obj.cell_col
             ): obj
             for obj
-            in Occurence.objects.filter(chapter=self.chapter)
+            in Occurence.objects.filter(chapter=chapter)
         }
 
         self.lemmas = {
@@ -108,10 +108,34 @@ import_sentences PATH_TO_CONTENT.XML
             in Lemma.objects.all()
         }
 
+    def import_table(self, xml_table, xml_root):
+        '''
+        Import the spreadsheet/table rows;
+        identify blocks of rows that belong to the same english lemma
+        extract and import the occurrence strings and metadata
+        '''
+        table_name = xml_table.attrib['name']
+        skipped = ''
+        if (table_name.startswith('_') or
+                table_name.lower().startswith('sheet')):
+            skipped = ' (skipped)'
+        print('> Table "%s"%s' % (table_name, skipped))
+        if skipped:
+            return
+
+        self.chapter = Chapter.update_or_create_from_table_name(table_name)
+
+        self._init_import_table(self.chapter)
+
+        print('Importing styles...')
+        self.reimport_table_styles(xml_root, self.chapter)
+
         # root = tree.getroot()
         # <table:table table:name="BENJY" table:style-name="ta1">
 
-        values = [None for i in range(0, 2024)]
+        print('Importing strings...')
+
+        values = [None for i in range(0, MAX_CELL_PER_ROW)]
 
         line = 0
 
@@ -139,18 +163,42 @@ import_sentences PATH_TO_CONTENT.XML
             if anchor and not added:
                 block.append(values[:])
 
-        Lemma.objects.bulk_create(self.lemmas_to_create)
-        self.stats['lemmas.created'] = len(self.lemmas_to_create)
+        self._post_import_table()
+
+    def _post_import_table(self):
+        '''
+        Bulk creation of new occurrences in DB.
+        Delete unused occurrences from DB.
+        Print import stats.
+        '''
 
         Occurence.objects.bulk_create(
             self.occurences_to_create
         )
         self.stats['cells.created'] = len(self.occurences_to_create)
 
+        # delete occurrences that are no longer in the imported sheet
+        for occurrence in self.occurrences.values():
+            if not getattr(occurrence, 'keep', False):
+                occurrence.delete()
+                self.stats['cells.deleted'] += 1
+
+        # remove unused lemma
+        from django.db.models import Count
+        Lemma.objects.annotate(
+            num_occs=Count('occurence')
+        ).filter(num_occs__lt=1).delete()
+
+        # remove unused chapters
+        Chapter.objects.annotate(
+            num_occs=Count('occurence')
+        ).filter(num_occs__lt=1).delete()
+
         print(
-            'Cells: (%s new, %s changed); Lemmas: (%s new, %s changed)' % (
+            'Cells: (C:%s U:%s D:%s); Lemmas: (C:%s U:%s)' % (
                 self.stats['cells.created'],
                 self.stats['cells.updated'],
+                self.stats['cells.deleted'],
                 self.stats['lemmas.created'],
                 self.stats['lemmas.updated'],
             )
@@ -199,7 +247,7 @@ import_sentences PATH_TO_CONTENT.XML
                 lines[line[3][0]] = line[4:]
             elif line[4][0]:
                 # string occurrences in English
-                lines['EN'] = line[4:]
+                lines[self.DRAL_REFERENCE_LANGUAGE] = line[4:]
 
         # normalise the forms
         forms = re.sub(r'^\((.*)\)$', r'\1', forms)
@@ -231,9 +279,10 @@ import_sentences PATH_TO_CONTENT.XML
                 lemma_obj = Lemma(
                     string=lemma,
                     forms=forms,
-                    language=self.languages['EN'],
+                    language=self.languages[self.DRAL_REFERENCE_LANGUAGE],
                 )
                 lemma_obj.save()
+                self.stats['lemmas.created'] += 1
                 # self.lemmas_to_create.append(lemma_obj)
             lemma = lemma_obj
 
@@ -298,7 +347,7 @@ import_sentences PATH_TO_CONTENT.XML
                     # .filter(**options).first()
                     occurence = self.occurrences.get(
                         '%s:%s:%s:%s' % (
-                            self.chapter,
+                            self.chapter.slug,
                             lemma_forms,
                             options['language'].id,
                             options['cell_col']
@@ -322,7 +371,7 @@ import_sentences PATH_TO_CONTENT.XML
                         # print(v[0])
                     options['cell'] = v[0][:MAX_CELL_LENGTH]
                     options['cell_style'] = v[1] or ''
-                    if lg == 'EN':
+                    if lg == self.DRAL_REFERENCE_LANGUAGE:
                         options['string'] = '?'
                         options['context'] = options['cell'][:50]
                     else:
@@ -331,11 +380,17 @@ import_sentences PATH_TO_CONTENT.XML
                             print(v[0])
 
                     if occurence:
+                        occurence.keep = 1
+                        has_changed = 0
                         for k in options.keys():
                             if getattr(occurence, k, None) != options[k]:
+                                has_changed = 1
+#                                 print(k, repr(getattr(occurence, k, None)),
+#                                       repr(options[k]))
                                 setattr(occurence, k, options[k])
-                        occurence.save()
-                        self.stats['occurrences.updated'] += 1
+                        if has_changed:
+                            occurence.save()
+                            self.stats['cells.updated'] += 1
                     else:
                         occurence = Occurence(**options)
                         self.occurences_to_create.append(occurence)
@@ -425,7 +480,8 @@ import_sentences PATH_TO_CONTENT.XML
         if 1:
             c = 0
             for occurence in Occurence.objects.filter(
-                    language__name='EN').select_related('lemma'):
+                language__name=self.DRAL_REFERENCE_LANGUAGE
+            ).select_related('lemma'):
                 lemmas = occurence.lemma.string.lower()
                 lemmas = lemmas.replace('*', '').split('/')
 
@@ -458,7 +514,8 @@ import_sentences PATH_TO_CONTENT.XML
                 if 0 and c > 300:
                     exit()
 
-        for occurence in Occurence.objects.exclude(language__name='EN'):
+        for occurence in Occurence.objects.exclude(
+                language__name=self.DRAL_REFERENCE_LANGUAGE):
             v = occurence.cell.lower()
 
             # categories
@@ -494,6 +551,8 @@ import_sentences PATH_TO_CONTENT.XML
 
     def show_message(self, message, line_number, status='WARNING'):
         print('{}: line {}, {}'.format(status, line_number, message))
+        if status == 'ERROR':
+            exit()
 
     def get_rows_from_xml_table(self, xml_table, values):
         '''
@@ -556,6 +615,9 @@ import_sentences PATH_TO_CONTENT.XML
         of the given file at file_path.
         The file can be an .ods file or its constituent content.xml file.
         '''
+        if not os.path.exists(file_path):
+            return None
+
         if file_path.endswith('.ods'):
             from zipfile import ZipFile
             content = ZipFile(file_path).read(name='content.xml')

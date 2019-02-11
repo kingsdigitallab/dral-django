@@ -1,8 +1,7 @@
 from django.db import models
+import re
 
 '''
-TODO: add chapters
-
 lemma
     string
     language
@@ -41,6 +40,49 @@ class Lemma(models.Model):
 
     class Meta:
         unique_together = [['string', 'forms']]
+
+
+class Chapter(models.Model):
+    slug = models.SlugField(max_length=60, unique=True)
+    name = models.CharField(max_length=60)
+    display_order = models.IntegerField(default=0, blank=False, null=False)
+
+    def __str__(self):
+        return '{}'.format(self.name)
+
+    @classmethod
+    def update_or_create_from_table_name(self, table_name):
+        '''
+        e.g. update_or_create_from_table_name('Chapter Two #2')
+
+        creates or update a Chapter with the following values:
+
+        .slug = 'chapter-two'
+        .name = 'Chapter Two'
+        .display_order = 2
+
+        If the chapter with that slug already exists, data will be updated.
+        '''
+
+        ret = None
+
+        from django.utils.text import slugify
+
+        # parse table_name
+        data = {}
+        data['name'] = table_name.strip()
+        data['name'], data['display_order'] = re.findall(
+            r'^(.*?)\s*(?:#(\d+))?$', data['name']
+        )[0]
+        data['display_order'] = int(data['display_order'] or 0)
+        data['slug'] = slugify(data['name'])
+
+        ret, _ = Chapter.objects.update_or_create(
+            slug=data['slug'],
+            defaults=data
+        )
+
+        return ret
 
 
 class Occurence(models.Model):
@@ -83,8 +125,14 @@ class Occurence(models.Model):
     # language of the word
     language = models.ForeignKey('Language', on_delete=models.PROTECT)
     # chapter code (e.g. BENJY)
-    chapter = models.CharField(max_length=10, blank=True)
-    # an abritrary index representing the lemma the word belongs to
+    chapter = models.ForeignKey(
+        'Chapter',
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.PROTECT
+    )
+    # an arbitrary index representing the lemma the word belongs to
     # it is the lemma in the language of the text (i.e. different from .lemma)
     lemma_group = models.IntegerField()
 
@@ -98,7 +146,13 @@ class SheetStyle(models.Model):
     # e.g. #ffff00, transparent
     color = models.CharField(max_length=15)
     # chapter code (e.g. BENJY)
-    chapter = models.CharField(max_length=10, blank=True)
+    chapter = models.ForeignKey(
+        'Chapter',
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.PROTECT
+    )
 
 
 class Sentence(models.Model):

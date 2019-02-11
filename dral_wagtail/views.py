@@ -1,10 +1,21 @@
 from django.shortcuts import render
 from collections import OrderedDict
 from dral_wagtail.api_vars import API_Vars
-from django.utils.text import slugify
+from dral_text.models import Chapter, Language
+from django.conf import settings
 
 
 class Visualisation(object):
+
+    def __init__(self):
+        self.chapter_slugs = OrderedDict(list(
+            Chapter.objects.values_list('slug', 'id').order_by('display_order')
+        ))
+        self.language_names = list(
+            Language.objects.values_list(
+                'name', flat=True
+            ).exclude(name=settings.DRAL_REFERENCE_LANGUAGE).order_by('name')
+        )
 
     def process_request(self, visualisation_code, context, request):
         self.visualisation_code = visualisation_code
@@ -37,8 +48,8 @@ class Visualisation(object):
             },
             {
                 'key': 'chapter',
-                'default': ['benjy', 'quentin', 'jason', 'dilsey'],
-                'options': ['benjy', 'quentin', 'jason', 'dilsey'],
+                'default': list(self.chapter_slugs.keys()),
+                'options': list(self.chapter_slugs.keys()),
                 'name': 'Chapter',
                 'type': 'multi',
             },
@@ -57,14 +68,14 @@ class Visualisation(object):
             },
             {
                 'key': 'lemma',
-                'default': 'SAY*/SAID',
+                'default': 'SAY',
                 'name': 'Lemma',
                 'type': 'str',
             },
             {
                 'key': 'language',
-                'default': ['lt', 'pol', 'ru'],
-                'options': ['lt', 'pol', 'ru'],
+                'default': self.language_names[:],
+                'options': self.language_names[:],
                 'name': 'Language',
                 'type': 'multi',
             },
@@ -109,28 +120,30 @@ class Visualisation(object):
 
     def visualisation_variants_progression(self):
         query = r'''
-            select oc.chapter as ch,
+            SELECT ch.slug as ch,
                 oc.sentence_index as sidx,
                 oc.string as word,
                 oc.lemma_group as grp,
                 oc.zero as omitted,
                 oc.paraphrase as para,
                 oc.replace as repl
-            from dral_text_occurence oc
-            join dral_text_language la
-            on (oc.language_id = la.id)
-            join dral_text_lemma le
-            on (oc.lemma_id = le.id)
-            where la.name = %s
-            and le.string = %s
-            and oc.chapter = ANY(%s)
-            order by array_position(%s, oc.chapter::text),
-            sentence_index
+            FROM dral_text_occurence oc
+                join dral_text_language la
+                on (oc.language_id = la.id)
+                join dral_text_lemma le
+                on (oc.lemma_id = le.id)
+                join dral_text_chapter ch
+                on (oc.chapter_id = ch.id)
+            WHERE la.name = %s
+                and le.string = %s
+                and ch.slug = ANY(%s)
+            ORDER by array_position(%s, ch.slug::text),
+                sentence_index
             ;
         '''
 
         lemma = self.config.get('lemma', 'DOORS')
-        chapters = [c.upper() for c in self.config.get('chapter')]
+        chapters = self.config.get('chapter')
         languages = [c.upper() for c in self.config.get('language')]
 
         data = OrderedDict()
@@ -174,7 +187,11 @@ class Visualisation(object):
         self.context['vis_data'] = data
 
     def visualisation_relative_omission(self):
-
+        '''
+        For each unique (lemma, lg) pair we get:
+            * the frequency (sc.qt)
+            * the number of ommissions (zc.qt)
+        '''
         query = r'''
             select
                 le.string as lemma, la.name as language, sc.qt as freq,
@@ -184,14 +201,14 @@ class Visualisation(object):
                 (
                     select lemma_id, language_id, count(*) qt
                     from dral_text_occurence oc
-                    where chapter = ANY(%s)
+                    where chapter_id = ANY (%s)
                     group by lemma_id, language_id
                 ) as sc
                 left join
                 (
                     select lemma_id, language_id, count(*) qt
                     from dral_text_occurence oc
-                    where chapter = ANY(%s)
+                    where chapter_id = ANY(%s)
                     and zero is true
                     group by lemma_id, language_id
                 ) as zc
@@ -221,18 +238,20 @@ class Visualisation(object):
                 order by sc.qt desc
             '''
 
-        chapters = [slugify(c) for c in self.config.get('chapter')]
+        chapter_ids = [self.chapter_slugs[slug]
+                       for slug in self.config.get('chapter')]
+        languages = [c.upper() for c in self.config.get('language')]
 
         freq_min = self.config.get('freq-min', 0)
 
         data = [
             (lg, get_rows_from_query(
                 query,
-                [chapters, chapters, freq_min, lg],
+                [chapter_ids, chapter_ids, freq_min, lg],
                 rounding=3
             )[0:])
             for lg
-            in ['LT', 'RU', 'POL']
+            in languages
         ]
         self.context['vis_data'] = OrderedDict(data)
 
