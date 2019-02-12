@@ -91,6 +91,7 @@ class Occurence(models.Model):
     represents metadata about the spreadsheet cell.
     '''
     # FIELDS IMPORTED STRAIGHT FROM THE SPREADSHEET
+
     # the text content of the cell
     cell = models.CharField(max_length=200, blank=True)
     # the style code (-> SheetStyle.name)
@@ -108,8 +109,20 @@ class Occurence(models.Model):
         blank=True,
         default=None,
         on_delete=models.PROTECT)
+    # chapter code (e.g. BENJY)
+    chapter = models.ForeignKey(
+        'Chapter',
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.PROTECT
+    )
+
+    # language of the word
+    language = models.ForeignKey('Language', on_delete=models.PROTECT)
 
     # DERIVED/INTERPRETED FROM THE ABOVE FIELDS
+
     # occurrence of the word in the text, without context
     string = models.CharField(max_length=20, null=True, blank=True)
     # the index of the sentence the word occurs
@@ -122,19 +135,13 @@ class Occurence(models.Model):
     zero = models.BooleanField(default=False)
     # paraphrased?
     paraphrase = models.BooleanField(default=False)
-    # language of the word
-    language = models.ForeignKey('Language', on_delete=models.PROTECT)
-    # chapter code (e.g. BENJY)
-    chapter = models.ForeignKey(
-        'Chapter',
-        null=True,
-        blank=True,
-        default=None,
-        on_delete=models.PROTECT
-    )
     # an arbitrary index representing the lemma the word belongs to
     # it is the lemma in the language of the text (i.e. different from .lemma)
     lemma_group = models.IntegerField()
+
+    def update_derived_fields(self):
+        '''Set derived field from spreadsheet fields (see above)'''
+        pass
 
     class Meta:
         unique_together = [['chapter', 'lemma', 'cell_col', 'language']]
@@ -144,7 +151,7 @@ class SheetStyle(models.Model):
     '''A style in a sheet'''
     name = models.CharField(max_length=10)
     # e.g. #ffff00, transparent
-    color = models.CharField(max_length=15)
+    color = models.CharField(max_length=15, default='')
     # chapter code (e.g. BENJY)
     chapter = models.ForeignKey(
         'Chapter',

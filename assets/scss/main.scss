@@ -115,7 +115,7 @@ h2 {
 
 new-chapter {
     fill: brown;
-    
+
 }
 
 .omitted {
@@ -181,9 +181,9 @@ new-chapter {
     top: 2em;
     width: 90vw;
     z-index: 10000;
-    
+
     display: none;
-    
+
     &.settings-visible {
         display: block;
     }
@@ -202,11 +202,11 @@ body {
 
     &.settings-visible {
         /* html body no longer scrollable when settings model is open*/
-        overflow: hidden;    
+        overflow: hidden;
 
         #settings {
             display: flex;
-        } 
+        }
     }
 }
 
@@ -259,9 +259,37 @@ body {
 }
 
 .setting-input {
-    margin-left: 40px;    
+    margin-left: 40px;
 }
 
 .highlighted {
     fill: orange;
+}
+
+// GN: import page
+
+p.error-message {
+    background-color: pink;
+    padding: 0.3rem;
+    margin: 0.3rem;
+
+    &:before {
+        content: '\26A0';
+        font-size: 1.5rem;
+    }
+}
+
+.import-log {
+    font-family: Courier New,Courier,Lucida Sans Typewriter,Lucida Typewriter,monospace;
+    font-size: small;
+
+    .msg-table {
+        font-weight: bold;
+        border-top: 2px solid;
+    }
+
+    .msg-warning {
+        background-color: #ffc58c;
+    }
+
 }
