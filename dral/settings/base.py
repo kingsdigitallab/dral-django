@@ -314,3 +314,10 @@ WAGTAILSEARCH_BACKENDS = {
         'TIMEOUT': 5,
     }
 }
+
+# -----------------------------------------------------------------------------
+# DRAL content
+# -----------------------------------------------------------------------------
+
+# code of the language of the original work
+DRAL_REFERENCE_LANGUAGE = 'EN'

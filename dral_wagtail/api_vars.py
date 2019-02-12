@@ -23,6 +23,13 @@ class API_Vars(object):
 
         options_selected = var.get('selected', [])
         options_default = var.get('default', [])
+        if isinstance(options_default, list):
+            options_default = [
+                get_key_from_name(v)
+                for v
+                in options_default
+            ]
+
         if 'options' in var:
             if var['options'] and not isinstance(var['options'][0], dict):
                 options = []

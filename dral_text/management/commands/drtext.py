@@ -7,7 +7,18 @@ Created on 19 April 2018
 from dral_wagtail.management.commands._kdlcommand import KDLCommand
 import xml.etree.ElementTree as ET
 import re
-from dral_text.models import Language, Lemma, Occurence, Sentence, SheetStyle
+import os
+from dral_text.models import (
+    Language, Lemma, Occurence, Sentence, SheetStyle, Chapter
+)
+from collections import OrderedDict
+
+MAX_CELL_PER_ROW = 2000
+MAX_CELL_LENGTH = 200
+
+
+class DRTEXTException(Exception):
+    pass
 
 
 class Command(KDLCommand):
@@ -38,65 +49,124 @@ import_sentences PATH_TO_CONTENT.XML
     '''
 
     def action_clear(self):
-        [o.delete() for o in Occurence.objects.all()]
-        [o.delete() for o in Sentence.objects.all()]
-        [o.delete() for o in Lemma.objects.all()]
-        [o.delete() for o in SheetStyle.objects.all()]
+        for model in [Occurence, Sentence, Lemma, SheetStyle, Chapter]:
+            model.objects.all().delete()
 
-    def action_import(self):
+    def _pre_action(self):
+        from django.conf import settings
+        self.DRAL_REFERENCE_LANGUAGE = settings.DRAL_REFERENCE_LANGUAGE
         Language.add_default_languages()
         self.languages = Language.get_languages()
+        self.messages = {
+            'error': '',
+            'messages': []
+        }
 
-        file_path = self.aargs.pop()
-        content = self._read_file(file_path, encoding='utf-8')
+    def action_import(self):
+        try:
+            file_path = self.aargs.pop()
+            self.import_occurrences_from_file(file_path)
+        except DRTEXTException as e:
+            pass
 
-        import re
-        content = re.sub(r'(table|office|style|text|draw|fo):', '', content)
+    def import_occurrences_from_file(self, file_path):
+        self._pre_action()
 
-        root = ET.fromstring(content)
+        root = self.get_element_tree_from_file(file_path)
 
-        table = root.find(".//table")
+        if root is not None:
+            for table in root.findall(".//table"):
+                self.import_table(table, root)
+                # break
+        else:
+            self.warn(
+                'File "{}" is empty or not found.'.format(file_path),
+                0,
+                'ERROR'
+            )
 
-        self.chapter = table.attrib['name']
+    def get_messages(self):
+        return self.messages
 
-        # ### COLORS
-        print('Importing sheet styles...')
+    def _init_import_table(self, chapter):
+        '''
+        Initialise the import statistics.
+        Read and cache all occurrences and Lemmas from DB to speed up
+        the import of a table.
+        '''
 
-        [o.delete() for o in SheetStyle.objects.filter(chapter=self.chapter)]
+        self.first_block_line_types = None
 
-        for style in root.findall(".//style"):
-            name = style.attrib['name']
-            properties = style.find('table-cell-properties')
-            color = '?'
-            if properties is not None:
-                color = properties.attrib.get('background-color', color)
-            style, _ = SheetStyle.objects.get_or_create(
-                name=name, chapter=self.chapter)
-            style.color = color
-            style.save()
-            # print(name, color)
+        self.stats = {
+            'cells.created': 0,
+            'cells.updated': 0,
+            'cells.deleted': 0,
+            'lemmas.created': 0,
+            'lemmas.updated': 0,
+        }
 
-        # return
+        self.occurences_to_create = []
+        self.lemmas_to_create = []
 
-        # ### STRINGS
-        # Import the spreadsheet rows
-        # identify blocks of rows that belong to the same english lemma
-        # extract and import the occurence strings and metadata
-        print('Importing strings...')
+        # read all the occurrences records for that chapter
+        self.occurrences = {
+            '%s:%s (%s):%s:%s' % (
+                obj.chapter.slug,
+                obj.lemma.string,
+                obj.lemma.forms,
+                obj.language_id,
+                obj.cell_col
+            ): obj
+            for obj
+            in Occurence.objects.filter(chapter=chapter).select_related(
+                'lemma', 'chapter'
+            )
+        }
+
+        self.lemmas = {
+            '%s (%s)' % (lemma.string, lemma.forms): lemma
+            for lemma
+            in Lemma.objects.all()
+        }
+
+    def import_table(self, xml_table, xml_root):
+        '''
+        Import the spreadsheet/table rows;
+        identify blocks of rows that belong to the same english lemma
+        extract and import the occurrence strings and metadata
+        '''
+        table_name = xml_table.attrib['name']
+        skipped = ''
+        if (table_name.startswith('_') or
+                table_name.lower().startswith('sheet')):
+            skipped = ' (skipped)'
+        self.msg('> Table "%s"%s' % (table_name, skipped))
+        if skipped:
+            return
+
+        self.chapter = Chapter.update_or_create_from_table_name(table_name)
+
+        self._init_import_table(self.chapter)
+
+        self.msg('Importing styles...')
+        self.reimport_table_styles(xml_root, self.chapter)
 
         # root = tree.getroot()
         # <table:table table:name="BENJY" table:style-name="ta1">
 
-        values = [None for i in range(0, 2024)]
+        self.msg('Importing strings...')
+
+        values = [None for i in range(0, MAX_CELL_PER_ROW)]
 
         line = 0
 
+        # process each row one at a time and group them into lemma blocks
         block = []
-        for cols in self.get_values_next_row(table, values):
+        for row_len in self.get_rows_from_xml_table(xml_table, values):
             line += 1
 
             added = False
-            anchor = values[4][0].strip()
+            anchor = values[4][0]
 
             # we add each line into the block
             # if there is no value in col 3: we process this block and
@@ -106,20 +176,235 @@ import_sentences PATH_TO_CONTENT.XML
                     # contains sentence numbers, we add it to the block first
                     if re.match(r'\d+', anchor):
                         added = True
-                        block.append(values[:])
+                        block.append(values[:row_len])
                     if block:
-                        self.process_lemma_block(block, line - len(block))
+                        self.process_lemma_block(block, line - len(block) + 1)
                     block = []
 
             # add the line to the block
             if anchor and not added:
-                block.append(values[:])
+                block.append(values[:row_len])
+
+        self._post_import_table()
+
+    def _post_import_table(self):
+        '''
+        Bulk creation of new occurrences in DB.
+        Delete unused occurrences from DB.
+        Print import stats.
+        '''
+
+        Occurence.objects.bulk_create(
+            self.occurences_to_create
+        )
+        self.stats['cells.created'] = len(self.occurences_to_create)
+
+        # delete occurrences that are no longer in the imported sheet
+        for occurrence in self.occurrences.values():
+            if not getattr(occurrence, 'keep', False):
+                occurrence.delete()
+                self.stats['cells.deleted'] += 1
+
+        # remove unused lemma
+        from django.db.models import Count
+        Lemma.objects.annotate(
+            num_occs=Count('occurence')
+        ).filter(num_occs__lt=1).delete()
+
+        # remove unused chapters
+        Chapter.objects.annotate(
+            num_occs=Count('occurence')
+        ).filter(num_occs__lt=1).delete()
+
+        self.msg(
+            'Cells: (C:%s U:%s D:%s); Keywords: (C:%s U:%s)' % (
+                self.stats['cells.created'],
+                self.stats['cells.updated'],
+                self.stats['cells.deleted'],
+                self.stats['lemmas.created'],
+                self.stats['lemmas.updated'],
+            )
+        )
+
+    def _get_lines_from_lemma_block(self, block, line_number):
+        lines = OrderedDict()
+
+        freq = 0
+        lemma = ''
+        forms = ''
+        for line in block:
+            # line[1][0] => 1: second cell, 0: text content
+            front_words = line[1][0].strip()
+            if front_words:
+                afreq = re.match(r'\d+', line[2][0])
+                if afreq:
+                    if lemma:
+                        self.warn(
+                            'block has more than one keyword',
+                            line_number
+                        )
+                    else:
+                        lemma = front_words
+                        freq = int(afreq.group(0))
+                else:
+                    if (
+                        front_words.startswith('(') and
+                        front_words.endswith(')')
+                    ):
+                        forms = front_words
+
+            if re.match(r'\d+', line[4][0]):
+                lines['locations'] = line[4:]
+            elif line[3][0]:
+                # string occurrences in one language
+                lines[line[3][0]] = line[4:]
+            elif line[4][0]:
+                # string occurrences in English
+                lines[self.DRAL_REFERENCE_LANGUAGE] = line[4:]
+
+        # normalise the forms
+        forms = re.sub(r'^\((.*)\)$', r'\1', forms)
+        forms = ', '.join([f.strip() for f in forms.split(',')])
+
+        if not self.first_block_line_types:
+            self.first_block_line_types = lines.keys()
+
+        differences = (
+            set(lines.keys()) ^ self.first_block_line_types
+        )
+
+        if differences:
+            self.warn(
+                'Block with mising or unexpected row: ' +
+                ','.join(differences),
+                line_number
+            )
+
+        # report discrepancies in line lengths within a block
+        line_lens = [len(line) for line in lines.values()]
+        min_line_len = min(line_lens)
+        if sum(line_lens) != (len(lines) * min_line_len):
+            self.warn(
+                'Block with variation in row lengths: {}'.format(
+                    ', '.join([
+                        '{}: {} cols'.format(lg, len(line))
+                        for lg, line
+                        in lines.items()
+                    ])
+                ),
+                line_number
+            )
+
+        return lines, lemma, forms, freq, min_line_len
+
+    def process_lemma_block(self, block, line_number):
+        '''
+        Process a lemma block from the spreadsheet
+        The block contains an array or rows.
+        Format of each row describe in get_values_next_row()
+        '''
+
+        lines, lemma, forms, freq, min_line_len =\
+            self._get_lines_from_lemma_block(
+                block, line_number
+            )
+
+        if not lemma:
+            self.warn(
+                'block doesn\'t have a keyword',
+                line_number
+            )
+            return
+
+        lemma_forms = '%s (%s)' % (lemma, forms)
+        self.msg('Keyword block %s' % lemma_forms, line_number)
+        lemma_obj = self.lemmas.get(lemma_forms, None)
+        if not lemma_obj:
+            lemma_obj = Lemma(
+                string=lemma,
+                forms=forms,
+                language=self.languages[self.DRAL_REFERENCE_LANGUAGE],
+            )
+            lemma_obj.save()
+            self.stats['lemmas.created'] += 1
+            # self.lemmas_to_create.append(lemma_obj)
+        lemma = lemma_obj
+
+        locations = lines.get('locations', None)
+
+        line_offset = 0
+        for lg, line in lines.items():
+            line_offset += 0
+            if lg is 'locations':
+                continue
+            # todo: remove this once the error has been corrected in file
+            # PL => POL
+            if lg == 'PL':
+                lg = 'POL'
+            styles = {}
+
+            for i, v in enumerate(line):
+                if i >= min_line_len:
+                    break
+
+                if v[1] not in styles:
+                    styles[v[1]] = len(styles.keys())
+
+                is_ref_lang = (lg == self.DRAL_REFERENCE_LANGUAGE)
+
+                occurence_data = dict(
+                    cell_line=line_number + line_offset,
+                    cell_col=i,
+                    cell=v[0][:MAX_CELL_LENGTH],
+                    cell_style=v[1] or '',
+                    language=self.languages[lg],
+                    chapter=self.chapter,
+                    lemma=lemma,
+                    lemma_group=styles[v[1]],
+                    freq=freq,
+                    sentence_index=self._get_int(
+                        locations[i][0], 0) if locations else 0,
+                    string=v[0][:20] if is_ref_lang else '?',
+                    context=v[0][:50] if is_ref_lang else '',
+                )
+
+                self.import_cell(occurence_data, lemma_forms)
+
+    def import_cell(self, occurence_data, lemma_forms):
+
+        self._clean_occurrence_data(occurence_data)
+
+        occurence = self.occurrences.get(
+            '%s:%s:%s:%s' % (
+                occurence_data['chapter'].slug,
+                lemma_forms,
+                occurence_data['language'].id,
+                occurence_data['cell_col']
+            ),
+            None
+        )
+
+        if occurence:
+            occurence.keep = 1
+            has_changed = 0
+            for k in occurence_data.keys():
+                if getattr(occurence, k, None) != occurence_data[k]:
+                    has_changed = 1
+                    setattr(occurence, k, occurence_data[k])
+            if has_changed:
+                occurence.save()
+                self.stats['cells.updated'] += 1
+        else:
+            occurence = Occurence(**occurence_data)
+            self.occurences_to_create.append(occurence)
 
     def action_import_sentences(self):
-        print('Delete all sentences')
-        [o.delete() for o in Sentence.objects.all()]
+        self._pre_action()
 
-        self.languages = Language.get_languages()
+        self.msg('Delete all sentences')
+        Sentence.objects.delete()
+
+        self.languages = self.languages
 
         import os
 
@@ -144,10 +429,10 @@ import_sentences PATH_TO_CONTENT.XML
                     table_name
                 )
                 if not match:
-                    print('WARNING: Skipped table %s' % table_name)
+                    self.msg('WARNING: Skipped table %s' % table_name)
                     continue
                 chapter, language_name = match.group(1), match.group(2)
-                print(chapter, language_name)
+                self.msg(chapter, language_name)
 
                 if language_name == 'PL':
                     language_name = 'POL'
@@ -155,14 +440,14 @@ import_sentences PATH_TO_CONTENT.XML
                 language = Language.objects.filter(name=language_name).first()
 
                 if not language:
-                    print(
+                    self.msg(
                         'WARNING: Skipped table %s (unrecognised language %s)'
                         % (table_name, language_name)
                     )
                     continue
 
                 # import table
-                values = [None for i in range(0, 2024)]
+                values = [None for i in range(0, MAX_CELL_PER_ROW)]
 
                 line = 0
 
@@ -170,7 +455,7 @@ import_sentences PATH_TO_CONTENT.XML
                     line += 1
 
                     if line % 2 == 0:
-                        # print(line)
+                        # self.msg(line)
 
                         string = string = values[1][0]
                         if string is None:
@@ -190,47 +475,98 @@ import_sentences PATH_TO_CONTENT.XML
                         )
                         sentence.save()
 
+    def _clean_occurrence_data(self, data):
+        # todo: move this to the model
+
+        if data['language'].name == self.DRAL_REFERENCE_LANGUAGE:
+            forms = [re.sub(r'[() ]', '', f).lower()
+                     for f in data['lemma'].forms.split(',')]
+
+            v = '?'
+            cell = data['cell'].lower()
+            for form in sorted(forms, key=lambda f: -len(f)):
+                if form in cell:
+                    v = form
+                    break
+
+            data['string'] = v[:20]
+        else:
+            v = data['cell'].lower()
+
+            # categories
+            v0 = v
+            v = re.sub(r'\bzerr?o\b', '', v)
+            data['zero'] = v0 != v
+            v0 = v
+            v = re.sub(r'\b(replace|replacement)\b', '', v)
+            data['replace'] = v0 != v
+            v0 = v
+            v = re.sub(r'\b(paraphrase|paraphrasing)\b', '', v)
+            data['paraphrase'] = v0 != v
+
+            # remove '/'
+            v = v.replace('/', ' ')
+
+            # remove parentheses
+            v = re.sub(r'\s*\([^\)]*\)\s*', '', v)
+
+            # reduce double spaces
+            v = re.sub(r'\s+', ' ', v.strip())
+
+            if not v:
+                v = None
+            else:
+                v = v[:20]
+            if 0 and v and re.search(r'\W', v):
+                self.warn(v, 0)
+
+            data['string'] = v
+
     def action_clean(self):
+        self._pre_action()
+
         import difflib
-        self.languages = Language.get_languages()
 
-        if 1:
-            c = 0
-            for occurence in Occurence.objects.filter(
-                    language__name='EN').select_related('lemma'):
-                lemmas = occurence.lemma.string.lower()
-                lemmas = lemmas.replace('*', '').split('/')
+        # todo: move this to the model
+        # todo: call it during import
+        c = 0
+        for occurence in Occurence.objects.filter(
+            language__name=self.DRAL_REFERENCE_LANGUAGE
+        ).select_related('lemma'):
+            lemmas = occurence.lemma.string.lower()
+            lemmas = lemmas.replace('*', '').split('/')
 
-                best_score = 0
-                v = ''
+            best_score = 0
+            v = ''
 
-                cell = occurence.cell.lower()
-                cell = re.sub(r'\W', ' ', cell)
+            cell = occurence.cell.lower()
+            cell = re.sub(r'\W', ' ', cell)
 
-                for word in cell.split(' '):
-                    for lemma in lemmas:
-                        s = difflib.SequenceMatcher(None, lemma, word)
-                        ratio = s.ratio()
-                        # print(word, lemma, ratio)
-                        if ratio > best_score:
-                            best_score = ratio
-                            v = word
+            for word in cell.split(' '):
+                for lemma in lemmas:
+                    s = difflib.SequenceMatcher(None, lemma, word)
+                    ratio = s.ratio()
+                    # self.msg(word, lemma, ratio)
+                    if ratio > best_score:
+                        best_score = ratio
+                        v = word
 
-                if not v:
-                    v = None
-                else:
-                    v = v[:20]
-                if occurence.string != v:
-                    occurence.string = v
-                    occurence.save()
+            if not v:
+                v = None
+            else:
+                v = v[:20]
+            if occurence.string != v:
+                occurence.string = v
+                occurence.save()
 
-                # print(occurence.cell, '=>', v)
+            # self.msg(occurence.cell, '=>', v)
 
-                c += 1
-                if 0 and c > 300:
-                    exit()
+            c += 1
+            if 0 and c > 300:
+                exit()
 
-        for occurence in Occurence.objects.exclude(language__name='EN'):
+        for occurence in Occurence.objects.exclude(
+                language__name=self.DRAL_REFERENCE_LANGUAGE):
             v = occurence.cell.lower()
 
             # categories
@@ -258,211 +594,73 @@ import_sentences PATH_TO_CONTENT.XML
             else:
                 v = v[:20]
             if 0 and v and re.search(r'\W', v):
-                self.show_message(v, 0)
+                self.warn(v, 0)
 
             occurence.string = v
 
             occurence.save()
 
-    def show_message(self, message, line_number, status='WARNING'):
-        print('{}: line {}, {}'.format(status, line_number, message))
+    def warn(self, message, line_number=None, status='WARNING'):
+        self.msg(message, line_number, status=status)
 
-    def process_lemma_block(self, block, line_number):
+    def msg(self, message, line_number=None, status=''):
+        if line_number:
+            message = '(at row {}) {}'.format(line_number, message)
+        if status:
+            message = '{}: {}'.format(status, message)
+
+        self.messages['messages'].append(message)
+
+        print(message)
+
+        if status == 'ERROR':
+            self.messages['error'] = message
+            raise DRTEXTException(message)
+
+        return message
+
+    def get_rows_from_xml_table(self, xml_table, values):
         '''
-        Process a lemma block from the spreadsheet
-        The block contains an array or rows.
-        Format of each row describe in get_values_next_row()
+        Yield the column count for each row in <table>.
+        And update <values> with array of pairs.
+        One pair for each cell.
+        pair = (textual_content, style)
         '''
-
-        # print('\n'.join([l[4][0] for l in block]))
-
-        lines = {}
-
-        freq = 0
-
-        lemma = ''
-        for line in block:
-            lemma_value = line[1][0]
-            if lemma_value:
-                afreq = re.match(r'\d+', line[2][0])
-                if afreq:
-                    if lemma:
-                        self.show_message(
-                            'block has more than one lemma',
-                            line_number
-                        )
-                    else:
-                        lemma = lemma_value
-                        freq = int(afreq.group(0))
-
-            if re.match(r'\d+', line[4][0]):
-                lines['locations'] = line[4:]
-            elif line[3][0]:
-                lines[line[3][0]] = line[4:]
-            elif line[4][0]:
-                lines['EN'] = line[4:]
-
-        differences = (
-            set(lines.keys()) ^
-            {'EN', 'RU', 'POL', 'LT', 'locations'}
-        )
-
-        if differences:
-            self.show_message(','.join(differences), line_number)
-
-        if not lemma:
-            self.show_message(
-                'block doesn\'t have a lemma',
-                line_number
-            )
-        else:
-            print('Block %s, %s' % (line_number, lemma))
-            lemma, _ = Lemma.objects.get_or_create(
-                string=lemma,
-                language=self.languages['EN']
-            )
-
-            locations = lines.get('locations', None)
-
-            median = 100000
-
-            if locations:
-                length = len(locations)
-                while length and (
-                    locations[length - 1] is None or
-                    not re.match(r'^\s*\d+\s*$', locations[length - 1][0])
-                ):
-                    length -= 1
-                median = length
-            else:
-                for line in lines.values():
-                    if locations:
-                        line = locations
-                    length = 0
-                    # stop if blank value AND no number in next cell
-                    while line[length][0] or (
-                        (length + 1) < len(line) and
-                        re.match(r'\d+', line[length + 1][0])
-                    ):
-                        length += 1
-
-                    if length < median:
-                        median = length
-                    if locations:
-                        break
-
-            # read all the occurence records for that lemma
-            occurrences = {
-                '%s:%s' % (obj.language_id, obj.cell_col): obj
-                for obj
-                in Occurence.objects.filter(lemma=lemma, chapter=self.chapter)
-            }
-
-            for lg in ['EN', 'RU', 'LT', 'POL']:
-                line = lines.get(lg)
-                styles = {}
-                if line:
-                    i = 0
-                    for v in line:
-                        if i >= median:
-                            break
-                        # removed that cnd as some strings can be blank
-                        # in the sequence... (benjy, come*, lt)
-                        if 0 and not v[0]:
-                            break
-
-                        if v[1] not in styles:
-                            styles[v[1]] = len(styles.keys())
-
-                        options = dict(
-                            cell_line=line_number,
-                            cell_col=i,
-                            language=self.languages[lg],
-                            chapter=self.chapter
-                        )
-
-                        # occurence = Occurence.objects\
-                        # .filter(**options).first()
-                        occurence = occurrences.get(
-                            '%s:%s' % (
-                                options['language'].id,
-                                options['cell_col']
-                            ),
-                            None
-                        )
-
-                        options['lemma'] = lemma
-                        options['freq'] = freq
-
-                        try:
-                            options['sentence_index'] = int(
-                                locations[i][0] if locations else 0
-                            )
-                        except ValueError:
-                            options['sentence_index'] = 0
-
-                        options['lemma_group'] = styles[v[1]]
-                        if len(v[0]) > 80:
-                            print(v[0])
-                        options['cell'] = v[0]
-                        options['cell_style'] = v[1] or ''
-                        if lg == 'EN':
-                            options['string'] = '?'
-                            options['context'] = options['cell'][:50]
-                        else:
-                            options['string'] = options['cell'][:20]
-                            if len(v[0]) > 20:
-                                print(v[0])
-
-                        if occurence:
-                            save = 0
-                            for k in options.keys():
-                                if getattr(occurence, k, None) != options[k]:
-                                    save = 1
-                                    setattr(occurence, k, options[k])
-                        else:
-                            occurence = Occurence(**options)
-                            save = 1
-                        if save:
-                            occurence.save()
-                        i += 1
-
-    def get_values_next_row(self, table, values):
-        '''
-            Yield the column count for each row in <table>.
-            And update values with array of pairs.
-            One pair for each cell.
-            pair = (textual_content, style)
-        '''
-        for row in table.findall('table-row'):
+        for row in xml_table.findall('table-row'):
             col = 0
+            row_len = 0
             for cell in row.findall('table-cell'):
                 # number-columns-repeated="2" table:style-name="ce2"
                 repeated = cell.attrib.get('number-columns-repeated', 1)
                 value = self.get_value_from_cell(cell)
                 style = cell.attrib.get('style-name', None)
                 for i in range(1, int(repeated) + 1):
+                    if col >= len(values):
+                        break
+                    if value:
+                        row_len = col + 1
                     values[col] = [
-                        value.strip(),
+                        value,
                         style
                     ]
                     col += 1
             row_repeated = int(row.attrib.get('number-rows-repeated', 1))
             for i in range(1, min(row_repeated, 2) + 1):
-                yield col
+                yield row_len
 
     def get_value_from_cell(self, cell):
         ret = ''
 
         para = cell.findall('p')
         if para:
-            ret = self.get_text_from_element(para[0])
+            ret = self.get_text_from_element(para[0]).strip()
 
         return ret
 
     def get_text_from_element(self, element):
-        '''Returns plain text content of the element
-            (and sub-elements)
+        '''
+        Returns plain text content of the element
+        (and sub-elements)
         '''
         ret = element.text or ''
         for child in element:
@@ -478,3 +676,54 @@ import_sentences PATH_TO_CONTENT.XML
             ret += child.tail or ''
 
         return ret.strip()
+
+    def get_element_tree_from_file(self, file_path):
+        '''
+        Returns the root of an ElementTree object loaded with the content
+        of the given file at file_path.
+        The file can be an .ods file or its constituent content.xml file.
+        '''
+        if not os.path.exists(file_path):
+            return None
+
+        if file_path.endswith('.ods'):
+            from zipfile import ZipFile
+            content = ZipFile(file_path).read(name='content.xml')
+            content = content.decode('utf-8')
+        elif file_path.endswith('.xml'):
+            content = self._read_file(file_path, encoding='utf-8')
+        else:
+            self.warn(
+                'Unsupported file extension, only accept .xml or .ods.',
+                status='ERROR'
+            )
+
+        import re
+        content = re.sub(r'(table|office|style|text|draw|fo):', '', content)
+
+        return ET.fromstring(content)
+
+    def reimport_table_styles(self, xml_root, chapter):
+        root = xml_root
+
+        for style in root.findall(".//style"):
+            properties = style.find('table-cell-properties')
+            color = ''
+            if properties is not None:
+                color = properties.attrib.get('background-color', color)
+            data = {
+                'name': style.attrib['name'],
+                'chapter': chapter,
+                'color': color
+            }
+            SheetStyle.objects.update_or_create(
+                name=data['name'], chapter=data['chapter'],
+                defaults=data
+            )
+
+    def _get_int(self, integer_str, default=0):
+        try:
+            ret = int(integer_str)
+        except ValueError:
+            ret = default
+        return ret
