@@ -706,20 +706,38 @@ import_sentences PATH_TO_CONTENT.XML
     def reimport_table_styles(self, xml_root, chapter):
         root = xml_root
 
+        self.styles = {
+            s.name: s
+            for s
+            in SheetStyle.objects.filter(chapter=chapter)
+        }
+
         for style in root.findall(".//style"):
             properties = style.find('table-cell-properties')
             color = ''
             if properties is not None:
                 color = properties.attrib.get('background-color', color)
+            name = style.attrib['name']
             data = {
-                'name': style.attrib['name'],
+                'name': name,
                 'chapter': chapter,
                 'color': color
             }
-            SheetStyle.objects.update_or_create(
-                name=data['name'], chapter=data['chapter'],
-                defaults=data
-            )
+
+            has_changed = 0
+            style_model = self.styles.get(name)
+            if style_model:
+                for f, v in data.items():
+                    if getattr(style_model, f) != v:
+                        setattr(style_model, f, v)
+                        has_changed = 1
+            else:
+                has_changed = 1
+                self.styles[name] = style_model = SheetStyle(**data)
+
+            if has_changed:
+                # print('updated' if style_model.pk else 'created')
+                style_model.save()
 
     def _get_int(self, integer_str, default=0):
         try:
