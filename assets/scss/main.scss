@@ -293,3 +293,30 @@ p.error-message {
     }
 
 }
+
+.viz-proof {
+
+    .lang-row-EN {
+        background-color: #dce6f1;
+    }
+
+    tr.keyword {
+        font-size: larger;
+        font-weight: bold;
+        background-color: #dce6f1;
+    }
+
+    .st {
+        max-width: 6rem;
+        overflow-x: hidden;
+    }
+
+    .string-none {
+        background-color: #ffc000;
+    }
+
+    .string-unknown {
+        background-color: red;
+    }
+}
+

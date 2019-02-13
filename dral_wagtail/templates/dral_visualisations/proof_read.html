@@ -1,0 +1,24 @@
+{% load dral_wagtail_tags %}
+
+{% for chapter in vis_data.chapters %}
+    <h2>{{ chapter.name }}</h2>
+    <table class="viz-proof">
+        {% for block in chapter.blocks %}
+            <tr class="keyword">
+                <td colspan="10">
+                    {{block.keyword.string}}
+                    ({{block.keyword.forms}})
+                    ({{ block.languages.0.strings|length }})
+                </td>
+            </tr>
+            {% for lg in block.languages %}
+                <tr class="lang-row lang-row-{{lg.name}}">
+                    <td class="lang">{{lg.name}}</td>
+                    {% for string in lg.strings %}
+                        <td class="st {% if string.0 is None %}string-none{% endif %} {% if string.0 == '?' %}string-unknown{% endif %}">{{ string.0|default:"ZERO" }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        {% endfor %}
+    </table>
+{% endfor %}

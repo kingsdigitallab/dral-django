@@ -42,7 +42,9 @@ class Visualisation(object):
                 'default': 'relative_omission',
                 'options': ['relative_omission',
                             'relative_omission_calendar',
-                            'variants_progression'],
+                            'variants_progression',
+                            'proof_read'
+                            ],
                 'name': 'Visualisation',
                 'type': 'single',
             },
@@ -185,6 +187,62 @@ class Visualisation(object):
             data[lg] = language_data
 
         self.context['vis_data'] = data
+
+    def visualisation_proof_read(self):
+        lemma = self.config.get('lemma', 'DOORS')
+        chapters = self.config.get('chapter')
+        languages = [c.upper() for c in self.config.get('language')]
+
+        from dral_text.models import Occurence
+
+        data_chapters = []
+
+        for chapter in chapters:
+            blocks = []
+            block = {}
+
+            occurrences = Occurence.objects.filter(
+                chapter__slug=chapter,
+                language__name__in=['EN'] + languages,
+            ).order_by('lemma', 'language_id').select_related(
+                'lemma', 'language'
+            )
+
+            last_lemma = None
+            last_lg = None
+            for occ in occurrences:
+                lg = occ.language
+                lemma = occ.lemma
+
+                if lemma != last_lemma:
+                    if block:
+                        blocks.append(block)
+                    block = {
+                        'keyword': lemma,
+                        'languages': [],
+                    }
+
+                if lg != last_lg:
+                    strings = []
+                    block['languages'].append({
+                        'name': occ.language.name,
+                        'strings': strings,
+                    })
+
+                strings.append([occ.string])
+
+                last_lg = lg
+                last_lemma = lemma
+
+            data_chapter = {
+                'name': chapter,
+                'blocks': blocks
+            }
+            data_chapters.append(data_chapter)
+
+        self.context['vis_data'] = {
+            'chapters': data_chapters
+        }
 
     def visualisation_relative_omission(self):
         '''
