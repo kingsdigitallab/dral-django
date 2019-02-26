@@ -72,7 +72,7 @@ class Chapter(models.Model):
         data = {}
         data['name'] = table_name.strip()
         data['name'], data['display_order'] = re.findall(
-            r'^(.*?)\s*(?:#(\d+))?$', data['name']
+            r'^(.*?)[\s_]*(?:#(\d+))?$', data['name']
         )[0]
         data['display_order'] = int(data['display_order'] or 0)
         data['slug'] = slugify(data['name'])

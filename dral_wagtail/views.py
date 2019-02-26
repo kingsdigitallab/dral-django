@@ -193,6 +193,14 @@ class Visualisation(object):
         chapters = self.config.get('chapter')
         languages = [c.upper() for c in self.config.get('language')]
 
+        sort_by = self.config.get('sort', True)
+#         if sort_by == 'name':
+#             lemma_order = 'lemma_string'
+#         elif sort_by == 'omission':
+#             lemma_order = 'name'
+#         else:
+#             lemma_order = ''
+
         from dral_text.models import Occurence
 
         data_chapters = []
@@ -204,8 +212,12 @@ class Visualisation(object):
             occurrences = Occurence.objects.filter(
                 chapter__slug=chapter,
                 language__name__in=['EN'] + languages,
-            ).order_by('lemma', 'language_id').select_related(
+            ).select_related(
                 'lemma', 'language'
+            )
+
+            occurrences = occurrences.order_by(
+                'lemma__string', 'lemma_id', 'language_id', 'cell_col'
             )
 
             last_lemma = None
@@ -229,10 +241,25 @@ class Visualisation(object):
                         'strings': strings,
                     })
 
-                strings.append([occ.string])
+                strings.append(occ.string)
 
                 last_lg = lg
                 last_lemma = lemma
+
+            if sort_by == 'frequency':
+                blocks = sorted(blocks, key=lambda b: -len(
+                    b['languages'][0]['strings']
+                ))
+            if sort_by == 'omission':
+                blocks = sorted(blocks, key=lambda b: -sum([
+                    sum([
+                        1 for s
+                        in l['strings']
+                        if s is None
+                    ])
+                    for l
+                    in b['languages']
+                ]))
 
             data_chapter = {
                 'name': chapter,

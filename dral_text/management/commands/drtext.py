@@ -310,18 +310,20 @@ import_sentences PATH_TO_CONTENT.XML
             )
 
         if not lemma:
-            self.warn(
-                'block doesn\'t have a keyword',
-                line_number
-            )
-            return
+            return self.warn('block doesn\'t have a keyword', line_number)
+
+        if not forms:
+            return self.warn('block doesn\'t have forms', line_number)
+
+        if len(lemma) > 20:
+            self.warn('keyword is longer than 20 characters', line_number)
 
         lemma_forms = '%s (%s)' % (lemma, forms)
         self.msg('Keyword block %s' % lemma_forms, line_number)
         lemma_obj = self.lemmas.get(lemma_forms, None)
         if not lemma_obj:
             lemma_obj = Lemma(
-                string=lemma,
+                string=lemma[:20],
                 forms=forms,
                 language=self.languages[self.DRAL_REFERENCE_LANGUAGE],
             )
@@ -482,14 +484,20 @@ import_sentences PATH_TO_CONTENT.XML
             forms = [re.sub(r'[() ]', '', f).lower()
                      for f in data['lemma'].forms.split(',')]
 
-            v = '?'
-            cell = data['cell'].lower()
-            for form in sorted(forms, key=lambda f: -len(f)):
-                if form in cell:
-                    v = form
-                    break
+            cell = data['cell']
 
-            data['string'] = v[:20]
+            v = None
+            if cell != 'ZERO':
+                cell = cell.lower()
+                v = '?'
+                for form in sorted(forms, key=lambda f: -len(f)):
+                    if form in cell:
+                        v = form
+                        break
+
+                v = v[:20]
+
+            data['string'] = v
         else:
             v = data['cell'].lower()
 
@@ -602,6 +610,7 @@ import_sentences PATH_TO_CONTENT.XML
 
     def warn(self, message, line_number=None, status='WARNING'):
         self.msg(message, line_number, status=status)
+        return False
 
     def msg(self, message, line_number=None, status=''):
         if line_number:

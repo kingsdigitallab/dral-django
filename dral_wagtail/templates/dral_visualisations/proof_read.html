@@ -15,7 +15,7 @@
                 <tr class="lang-row lang-row-{{lg.name}}">
                     <td class="lang">{{lg.name}}</td>
                     {% for string in lg.strings %}
-                        <td class="st {% if string.0 is None %}string-none{% endif %} {% if string.0 == '?' %}string-unknown{% endif %}">{{ string.0|default:"ZERO" }}</td>
+                        <td class="st {% if string is None %}string-none{% endif %} {% if string.0 == '?' %}string-unknown{% endif %}">{{ string|default:"ZERO" }}</td>
                     {% endfor %}
                 </tr>
             {% endfor %}
