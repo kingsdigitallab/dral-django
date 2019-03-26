@@ -18,7 +18,6 @@ class Visualisation(object):
         )
 
     def process_request(self, visualisation_code, context, request):
-        self.visualisation_code = visualisation_code
         self.context = context
         self.request = request
 
@@ -33,18 +32,21 @@ class Visualisation(object):
 
         return ret
 
-    def get_config_schema(self, alignment_data=None):
-        # cache = caches['kiln']
+    def get_visualisations_list(self):
+        return API_Vars(self.get_config_schema()).get_all_options('viz')
+
+    def get_config_schema(self):
 
         ret = [
             {
                 'key': 'viz',
                 'default': 'relative_omission',
-                'options': ['relative_omission',
-                            'relative_omission_calendar',
-                            'variants_progression',
-                            'proof_read'
-                            ],
+                'options': [
+                    'relative_omission',
+                    'relative_omission_calendar',
+                    'variants_progression',
+                    'proof_read'
+                ],
                 'name': 'Visualisation',
                 'type': 'single',
             },
@@ -83,7 +85,6 @@ class Visualisation(object):
             },
         ]
 
-        # cache.set('alignment_config_options', ret)
         return ret
 
     def view_visualisation(self):
@@ -91,7 +92,6 @@ class Visualisation(object):
         config = self.config = self.get_config()
         self.context['config'] = config.get_list()
 
-        # code = self.visualisation_code.replace('-', '_')
         code = config.get('viz', 1)
 
         method = getattr(self, 'visualisation_{}'.format(code))

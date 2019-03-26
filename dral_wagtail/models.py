@@ -1,11 +1,13 @@
 # from django.db import models
 from wagtail.core.fields import RichTextField
-from django.db.models.fields import CharField, SlugField
+from django.db.models.fields import CharField
 from wagtail.core.models import Page
 from wagtail.admin.edit_handlers import FieldPanel, MultiFieldPanel
 from wagtail.search import index
 from django.utils.html import strip_tags
+from .views import Visualisation
 import re
+from django.shortcuts import render
 
 # ===================================================================
 #                            STATIC PAGES
@@ -73,28 +75,29 @@ class StaticPage(RichPage):
 
 
 class VisualisationSetPage(RichPage):
-    pass
-
-
-class VisualisationPage(RichPage):
-    visualisation_code = SlugField(
-        'Visualisation Code',
-        max_length=32,
-        blank=True,
-        null=True,
-        default=None,
-        help_text=''
-    )
-
-    settings_panels = Page.settings_panels + [
-        FieldPanel('visualisation_code', classname="full"),
-    ]
 
     def serve(self, request):
+        viz_code = request.GET.get('viz', '').strip()
+
         context = {
             'page': self,
             'request': request,
         }
-        from .views import Visualisation
-        viz = Visualisation()
-        return viz.process_request(self.visualisation_code, context, request)
+
+        if viz_code:
+            viz = Visualisation()
+            ret = viz.process_request(
+                viz_code, context, request
+            )
+        else:
+            context['visualisations'] = [
+                {
+                    'title': viz['name'].replace('_', ' '),
+                    'webpath': '?viz=' + viz['key'],
+                }
+                for viz in Visualisation().get_visualisations_list()
+            ]
+
+            ret = render(request, self.get_template(request), context)
+
+        return ret
