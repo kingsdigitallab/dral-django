@@ -1,6 +1,24 @@
 {% load dral_wagtail_tags %}
 
+{% comment %}
+freq: 8
+language: "LT"
+lemma: "COMPANY"
+omitted: 0
+ratio_omitted: 0
+{% endcomment %}
+
 {% verbatim %}
+    <div id="infobox">
+        <template v-if="d.language">
+            <div>
+              Repeteme: {{ d.lemma }};
+              Frequency (EN): {{ d.freq }};
+              Omissions ({{ d.language }}): {{ d.omitted }} ({{ d.omitted_pc }} %);
+            </div>
+        </template>
+    </div>
+
   <div class="svg-viz">
   </div>
 
@@ -15,7 +33,7 @@
 
 <script>
     $(function() {
-        
+
         window.vis_data = {{ vis_data|json }};
         // console.log(vis_data);
 
@@ -41,7 +59,7 @@
 
             $.each(data, function(i, d) {
                 var height = d.ratio_omitted * 100;
-                
+
                 var class_omitted = (d.ratio_omitted == 1) ? 'omitted' : '';
                 if (d.ratio_omitted > 1) class_omitted = 'error';
 
@@ -68,12 +86,12 @@
                   width = 0;
                 }
             });
-           
-           
+
+
            $svg.height(y);
         });
-        
-        // mouseover 
+
+        // mouseover
         // TODO: review performances...
         // We don't attach an event to every bar:
         // a) that would be prohibitive
@@ -82,10 +100,12 @@
         d3.selectAll('rect').on('mouseenter', function() {
             // TODO: better way to get the index from mouse coord
             var square = d3.select(this)
-            infobox_dict(window.vis_data[square.attr('data-lng')][square.attr('data-idx')]);
+            var d = window.vis_data[square.attr('data-lng')][square.attr('data-idx')];
+            d['omitted_pc'] = (d['ratio_omitted'] * 100.0).toFixed(1);
+            infobox_dict(d);
         }).on('mouseout',
             function() {
-                infobox();
+                infobox_dict({});
             }
         );
     });

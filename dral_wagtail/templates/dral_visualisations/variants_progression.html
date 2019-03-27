@@ -1,6 +1,25 @@
 {% load dral_wagtail_tags %}
 
+{% comment %}
+ch: "benjy"
+grp: 26
+omitted: false
+para: false
+repl: false
+sidx: 943
+word: "ragina"
+{% endcomment %}
+
 {% verbatim %}
+    <div id="infobox">
+        <template v-if="d.ch">
+            <div>
+              Chapter: {{ d.ch }};
+              Translation: <template v-if="d.omitted">not translated</template>{{ d.word }};
+            </div>
+        </template>
+    </div>
+
   <div class="svg-viz">
   </div>
 
@@ -15,7 +34,7 @@
 
 <script>
     $(function() {
-        
+
         window.vis_data = {{ vis_data|json }};
         // console.log(vis_data);
 
@@ -42,17 +61,17 @@
             var total_width = $svg.width();
             var squares_per_row = Math.floor(1.0 * total_width / w) - 5;
             //var squares_per_row = Math.floor(100.0 / w) - 5;
-            
+
             console.log(w);
             console.log(total_width);
             console.log(squares_per_row);
-            
+
             var sidx_last = 0;
             var diff;
 
             $.each(data.words, function(i, d) {
                 diff = d.sidx - sidx_last;
-                
+
                 if (diff < 0) {
                     svg_group.append('rect')
                         .attr('class', 'new-chapter')
@@ -67,10 +86,10 @@
                     y += Math.floor(x / squares_per_row) * h;
                     x = (x % squares_per_row) * w;
                 }
-                
+
                 var class_omitted = d.omitted ? 'omitted' : '';
                 var grp = d.ch+'-'+d.grp;
-                
+
                 var rectangles = svg_group
                   .append('rect')
                   .attr('class', 'square ' + class_omitted)
@@ -97,15 +116,15 @@
                   x = 0;
                 }
                 */
-                
+
                 sidx_last = d.sidx;
             });
-           
-           
+
+
            $svg.height(y);
         });
-        
-        // mouseover 
+
+        // mouseover
         // TODO: review performances...
         // We don't attach an event to every bar:
         // a) that would be prohibitive
@@ -113,14 +132,15 @@
         // See https://bl.ocks.org/mbostock/3902569
         d3.selectAll('rect').on('mouseenter', function() {
             // TODO: better way to get the index from mouse coord
-            var square = d3.select(this)
+            var square = d3.select(this);
+
             infobox_dict(window.vis_data[square.attr('data-lng')].words[square.attr('data-idx')]);
             $('[data-grp='+square.attr('data-grp')+']').addClass('highlighted');
-            
+
         }).on('mouseout',
             function() {
                 $('.highlighted').removeClass('highlighted');
-                infobox();
+                infobox_dict({});
             }
         );
     });

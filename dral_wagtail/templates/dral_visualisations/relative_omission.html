@@ -1,6 +1,17 @@
 {% load dral_wagtail_tags %}
 
+{# {language: "LT", ratio_omitted: 0, lemma: "PACKAGE", omitted: 0, freq: 3} #}
 {% verbatim %}
+    <div id="infobox">
+        <template v-if="d.language">
+            <div>
+              Repeteme: {{ d.lemma }};
+              Frequency (EN): {{ d.freq }};
+              Omissions ({{ d.language }}): {{ d.omitted }} ({{ d.omitted_pc }} %);
+            </div>
+        </template>
+    </div>
+
   <div class="svg-viz">
   </div>
 
@@ -15,11 +26,9 @@
 
 <script>
     $(function() {
-        
+
         window.vis_data = {{ vis_data|json }};
 
-        // console.log(vis_data);
-        
         $viz = $('.svg-viz');
 
         $.each(window.vis_data, function(lang, data) {
@@ -28,9 +37,9 @@
                 {'language': lang}
             ));
             var $svg_group = $viz.find('g:last');
-            
+
             var x = 0;
-            
+
             var width = 100.0 / this.length;
             var width_rounded = round(width)
 
@@ -51,8 +60,8 @@
 
                 x += width;
             });
-            
-            // mouseover 
+
+            // mouseover
             // We don't attach an event to every bar:
             // a) that would be prohibitive
             // b) user couldn't select lemma without omissions (0-height bar)
@@ -63,21 +72,22 @@
                     // TODO: better way to get the index from mouse coord
                     var x0 = 0, x1 = $svg_group.parent().width();
                     var idx = Math.floor(xm / (x1 - x0) * data.length);
+                    data[idx]['omitted_pc'] = (data[idx]['ratio_omitted'] * 100.0).toFixed(1);
                     infobox_dict(data[idx]);
                 }
             ).on(
                 'mouseout', function() {
-                    infobox();
+                    infobox_dict({});
                 }
             );
         });
     });
-    
+
     {% comment %}
       JSON input format:
-          
+
       Lng x Lemma
-    
+
       {'LT':
         [
           {

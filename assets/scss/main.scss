@@ -157,8 +157,8 @@ new-chapter {
 
 // GN: july 2018
 
-#infobox {
-    display: none;
+#infobox div {
+    /* display: none; */
     background-color: rgba(255,255,255,0.8);
     border: 2px solid grey;
     padding: 0.5em;
@@ -271,6 +271,14 @@ body {
 .settings-head {
     background-color: #1c2434;
     color: white;
+
+    h3 {
+        display: inline;
+    }
+
+    .toggle-settings {
+        float: right;
+    }
 }
 
 .setting-input {
@@ -301,6 +309,7 @@ p.error-message {
     .msg-table {
         font-weight: bold;
         border-top: 2px solid;
+        padding-top: 0.3em;
     }
 
     .msg-warning {
@@ -334,4 +343,5 @@ p.error-message {
         background-color: red;
     }
 }
+
 

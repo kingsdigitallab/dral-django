@@ -1,5 +1,5 @@
 from django import forms
 
 
-class ImportOccurrencesForm(forms.Form):
+class ImportSheetForm(forms.Form):
     file = forms.FileField()
