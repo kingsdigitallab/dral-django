@@ -234,39 +234,43 @@ class Visualisation(object):
                         'languages': [],
                         'sidxs': [],
                         'freq': 0,
+                        'omissions': 0,
                     }
 
                 if lg != last_lg:
                     strings = []
-                    block['languages'].append({
+                    language = {
                         'name': occ.language.name,
                         'strings': strings,
-                    })
+                        'omissions': 0,
+                        # number of ? or ??
+                        'unknowns': 0,
+                    }
+                    block['languages'].append(language)
 
-                if lg.name == 'EN':
+                if lg.name == settings.DRAL_REFERENCE_LANGUAGE:
                     block['sidxs'].append(occ.sentence_index)
                     if occ.string:
                         block['freq'] += 1
 
-                strings.append(occ.string)
+                strings.append(occ)
+                if occ.string is None:
+                    block['omissions'] += 1
+                    language['omissions'] += 1
+                if occ.string in ['?', '??']:
+                    language['unknowns'] += 1
 
                 last_lg = lg
                 last_lemma = lemma
 
+            # add last block
+            if block and blocks and blocks[-1] != block:
+                blocks.append(block)
+
             if sort_by == 'frequency':
-                blocks = sorted(blocks, key=lambda b: -len(
-                    b['languages'][0]['strings']
-                ))
+                blocks = sorted(blocks, key=lambda b: -b['freq'])
             if sort_by == 'omission':
-                blocks = sorted(blocks, key=lambda b: -sum([
-                    sum([
-                        1 for s
-                        in l['strings']
-                        if s is None
-                    ])
-                    for l
-                    in b['languages']
-                ]))
+                blocks = sorted(blocks, key=lambda b: -b['omissions'])
 
             data_chapter = {
                 'name': chapter,

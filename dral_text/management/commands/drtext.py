@@ -97,7 +97,7 @@ import_sentences PATH_TO_CONTENT.XML
         the import of a table.
         '''
 
-        self.first_block_line_types = None
+        self.previous_block_line_types = None
 
         self.stats = {
             'cells.created': 0,
@@ -268,19 +268,17 @@ import_sentences PATH_TO_CONTENT.XML
         forms = re.sub(r'^\((.*)\)$', r'\1', forms)
         forms = ', '.join([f.strip() for f in forms.split(',')])
 
-        if not self.first_block_line_types:
-            self.first_block_line_types = lines.keys()
-
-        differences = (
-            set(lines.keys()) ^ self.first_block_line_types
-        )
-
-        if differences:
-            self.warn(
-                'Block with mising or unexpected row: ' +
-                ','.join(differences),
-                line_number
+        if self.previous_block_line_types:
+            differences = (
+                set(lines.keys()) ^ self.previous_block_line_types
             )
+
+            if differences:
+                self.warn(
+                    'Block with mising or unexpected row: ' +
+                    ','.join(differences),
+                    line_number
+                )
 
         # report discrepancies in line lengths within a block
         line_lens = [len(line) for line in lines.values()]
@@ -297,6 +295,8 @@ import_sentences PATH_TO_CONTENT.XML
                 line_number
             )
 
+        self.previous_block_line_types = lines.keys()
+
         return lines, lemma, forms, freq, min_line_len
 
     def process_lemma_block(self, block, line_number):
@@ -304,6 +304,10 @@ import_sentences PATH_TO_CONTENT.XML
         Process a lemma block from the spreadsheet
         The block contains an array or rows.
         Format of each row describe in get_values_next_row()
+
+        string:
+            ?: for empty cell
+            ??: for EN cell that doesn't contain a form
         '''
 
         lines, lemma, forms, freq, min_line_len =\
@@ -411,19 +415,24 @@ import_sentences PATH_TO_CONTENT.XML
         # todo: move this to the model
 
         if data['language'].name == self.DRAL_REFERENCE_LANGUAGE:
-            forms = [re.sub(r'[() ]', '', f).lower()
-                     for f in data['lemma'].forms.split(',')]
+            forms = [
+                re.sub(r'[() ]', '', f).lower()
+                for f in data['lemma'].forms.split(',')
+            ]
 
             cell = data['cell']
 
             v = None
             if cell != 'ZERO':
                 cell = cell.lower()
-                v = '?'
+                v = '??'
                 for form in sorted(forms, key=lambda f: -len(f)):
                     if form in cell:
                         v = form
                         break
+
+                if 0 and v == '??':
+                    print('?? ', cell, forms)
 
                 v = v[:20]
 

@@ -14,12 +14,16 @@
             {% for lg in block.languages %}
                 <tr class="lang-row lang-row-{{lg.name}}">
                     <td class="lang">{{lg.name}}</td>
+                    <td class="lang">{% if lg.omissions %}Z {{lg.omissions}}{% endif %}</td>
+                    <td class="lang {% if lg.unknowns %}string-unknown{% endif %}">{% if lg.unknowns %}? {{lg.unknowns}}{% endif %}</td>
                     {% for string in lg.strings %}
-                        <td class="st {% if string is None %}string-none{% endif %} {% if string.0 == '?' %}string-unknown{% endif %}">{{ string|default:"ZERO" }}</td>
+                        <td class="st {% if string.string is None %}string-none{% endif %} {% if string.string.0 == '?' %}string-unknown{% endif %}">{{ string.string|default:"ZERO" }}{% if string.context and string.context|length < string.cell|length %} [context truncated]{% endif %}</td>
                     {% endfor %}
                 </tr>
             {% endfor %}
             <tr class="sidxs">
+                <td></td>
+                <td></td>
                 <td></td>
                 {% for idx in block.sidxs %}
                     <td>{{ idx|default:"?" }}</td>
