@@ -8,7 +8,7 @@
                 <td colspan="10">
                     {{block.keyword.string}}
                     ({{block.keyword.forms}})
-                    ({{ block.languages.0.strings|length }})
+                    ({{ block.freq }})
                 </td>
             </tr>
             {% for lg in block.languages %}
@@ -19,6 +19,12 @@
                     {% endfor %}
                 </tr>
             {% endfor %}
+            <tr class="sidxs">
+                <td></td>
+                {% for idx in block.sidxs %}
+                    <td>{{ idx|default:"?" }}</td>
+                {% endfor %}
+            </tr>
         {% endfor %}
     </table>
 {% endfor %}

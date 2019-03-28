@@ -215,8 +215,8 @@ import_sentences PATH_TO_CONTENT.XML
 
         # remove unused chapters
         Chapter.objects.annotate(
-            num_occs=Count('occurence')
-        ).filter(num_occs__lt=1).delete()
+            num_occs=Count('occurence'), num_sentences=Count('sentence')
+        ).filter(num_occs__lt=1, num_sentences__lt=1).delete()
 
         self.msg(
             'Cells: (C:%s U:%s D:%s); Keywords: (C:%s U:%s)' % (
@@ -343,8 +343,13 @@ import_sentences PATH_TO_CONTENT.XML
                 continue
             # todo: remove this once the error has been corrected in file
             # PL => POL
+            lg = lg.strip().upper()
             if lg == 'PL':
                 lg = 'POL'
+
+            if lg not in self.languages:
+                self.languages[lg] = Language.get_or_create_from_name(lg)
+
             styles = {}
 
             for i, v in enumerate(line):

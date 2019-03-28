@@ -232,6 +232,8 @@ class Visualisation(object):
                     block = {
                         'keyword': lemma,
                         'languages': [],
+                        'sidxs': [],
+                        'freq': 0,
                     }
 
                 if lg != last_lg:
@@ -240,6 +242,11 @@ class Visualisation(object):
                         'name': occ.language.name,
                         'strings': strings,
                     })
+
+                if lg.name == 'EN':
+                    block['sidxs'].append(occ.sentence_index)
+                    if occ.string:
+                        block['freq'] += 1
 
                 strings.append(occ.string)
 
