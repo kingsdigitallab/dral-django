@@ -17,8 +17,6 @@
     $(function() {
         
         window.vis_data = {{ vis_data|json }};
-
-        // console.log(vis_data);
         
         $viz = $('.svg-viz');
 
@@ -27,9 +25,14 @@
                 'viz-chart',
                 {'language': lang}
             ));
+
+            // console.log(data.length);
+            
             var $svg_group = $viz.find('g:last');
             
             var x = 0;
+
+            var total_height = '300';
             
             var width = 100.0 / this.length;
             var width_rounded = round(width)
@@ -51,6 +54,40 @@
 
                 x += width;
             });
+
+            // Add axes to the visualisations
+
+            yScale = d3.scaleLinear()
+                .domain([0, total_height])
+                .range([0, total_height]);
+
+            yAxisValues = d3.scaleLinear()
+                .domain([0, total_height])
+                .range([0, total_height]);
+
+            yAxisTicks = d3.axisLeft(yAxisValues)
+                .ticks(total_height / 10);
+
+            xScale = d3.scaleLinear()
+                .domain([0, data.length])
+                .range([0, data.length]);
+
+            xAxisValues = d3.scaleLinear()
+                .domain([0, data.length])
+                .range([0, data.length]);
+
+            xAxisTicks = d3.axisTop(xAxisValues)
+                .ticks(data.length / 10);
+
+            yGuide = d3.select('svg.chart').append('g')
+                .attr('transform', 'translate(30, 20)')
+                .call(yAxisTicks);
+
+            xGuide = d3.select('svg.chart').append('g')
+                .attr('transform', 'translate(30, 20)')
+                .call(xAxisTicks);
+
+            // End axes test
             
             // mouseover 
             // We don't attach an event to every bar:

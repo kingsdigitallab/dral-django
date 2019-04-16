@@ -41,7 +41,9 @@
             var h = sh;
             var total_width = $svg.width();
             var squares_per_row = Math.floor(1.0 * total_width / w) - 5;
-            //var squares_per_row = Math.floor(100.0 / w) - 5;
+            // var squares_per_row = Math.floor(100.0 / w) - 5;
+            // var squares_per_row = Math.floor(100.0 / w);
+            // var squares_per_row = Math.floor(total_width / w);
             
             console.log(w);
             console.log(total_width);
@@ -64,7 +66,7 @@
                     y += h * 2;
                 } else {
                     x += diff * w;
-                    y += Math.floor(x / squares_per_row) * h;
+                    y += Math.floor(1.0 * x / squares_per_row) * h;
                     x = (x % squares_per_row) * w;
                 }
                 
@@ -100,8 +102,7 @@
                 
                 sidx_last = d.sidx;
             });
-           
-           
+
            $svg.height(y);
         });
         

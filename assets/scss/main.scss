@@ -108,7 +108,7 @@ h2 {
 }
 
 .calendar {
-  height: 500px;
+  // height: 500px;
   width: 100%;
 }
 
@@ -127,9 +127,9 @@ h2 {
   }
 }
 
-new-chapter {
+new-chapter, // left it here, but I believe this is a class?
+.new-chapter {
     fill: brown;
-
 }
 
 .omitted {
@@ -141,7 +141,7 @@ new-chapter {
 
 .square {
   fill: green;
-  stroke: white;
+  // stroke: black;
 }
 
 .svg-viz {
