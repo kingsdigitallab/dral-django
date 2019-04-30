@@ -2,10 +2,10 @@
 {% load wagtailcore_tags dral_wagtail_tags %}
 
 {% block main %}
-    
+
     <ul>
-      {% for visualisation in page.get_children %}
-          <li><a href="{% pageurl visualisation %}">{{ visualisation.title }}</a></li>
+      {% for viz in visualisations %}
+          <li><a href="{{ viz.webpath }}">{{ viz.title }}</a></li>
       {% endfor %}
     </ul>
 

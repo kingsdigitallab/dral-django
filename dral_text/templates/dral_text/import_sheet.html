@@ -5,7 +5,7 @@
     <header>
         <a href="/">DRaL</a>
         &gt;
-        <a href="/visualisations/">Import</a>
+        <a href="/import/">Import</a>
         &gt;
         <span class="page-title">{{ page.title }}</span>
     </header>
@@ -20,15 +20,28 @@
     {% endif %}
 
     {% if error or not messages %}
-        <p>
-            Use the form below to import repetition strings from a spreadsheet.
-            Please upload a .ods file (you can save your file to .ods format using MS Excel or LibreOffice).
-        </p>
-        <p>
-            Each Sheet in your file corresponds to a chapter. (Sheets with a name starting with underscore or 'Sheet' will be ignored)
-            Add #1, #2, ... at the end of the name to specify the order of the chapter in the book.
-            e.g. 'Benjy #1', 'Dilsey #4'.
-        </p>
+        {% if import_type == 'occurrences' %}
+            <p>
+                Use the form below to import repetition strings from a spreadsheet.
+                Please upload a .ods file (you can save your file to .ods format using MS Excel or LibreOffice).
+            </p>
+            <p>
+                Each Sheet in your file corresponds to a chapter. (Sheets with a name starting with underscore or 'Sheet' will be ignored)
+                Add #1, #2, ... at the end of the name to specify the order of the chapter in the book.
+                e.g. 'Benjy #1', 'Dilsey #4'.
+            </p>
+        {% endif %}
+        {% if import_type == 'sentences' %}
+            <p>
+                Use the form below to import sentences.
+                Please upload a .ods file (you can save your file to .ods format using MS Excel or LibreOffice).
+            </p>
+            <p>
+                Each Sheet in your file corresponds to a chapter in a particular language.
+                (Sheets with a name starting with underscore or 'Sheet' will be ignored)
+                e.g. 'Benjy EN', 'Dilsey RU'.
+            </p>
+        {% endif %}
         <p>
             The import can take between 30s to 2 minutes. Thank you for your patience.
         </p>

@@ -30,17 +30,17 @@ Usage: ACTION [OPTIONS]
 ACTIONS:
 
 import PATH_TO_CONTENT.XML
-    import occurence data from a spreadsheet into the relational DB
+    import occurrence data from a spreadsheet into the relational DB
     PATH_TO_CONTENT.XML: is a content.xml obtained by unzipping a .ods file
     The .ods file is a spreadsheet saved with LibreOffice Calc.
     e.g. ./manage.py drtext import research_data/private/benjy/content.xml
 
 clean
-    compute occurence fields derived from occurence data imported from
+    compute occurrence fields derived from occurrence data imported from
     spreadsheet research_data/private/spreadsheets/S_F_alligned_ru.ods
 
 clear
-    remove all the occurence data from the database
+    remove all the occurrence data from the database
 
 import_sentences PATH_TO_CONTENT.XML
     import_sentences
@@ -48,54 +48,56 @@ import_sentences PATH_TO_CONTENT.XML
     ce52 is yellow
     '''
 
+    # =============================================================
+    # MAIN ACTIONS from command line
+
+    def action_clean(self):
+        self._pre_action()
+        self._action_clean()
+
     def action_clear(self):
+        self._pre_action()
         for model in [Occurence, Sentence, Lemma, SheetStyle, Chapter]:
             model.objects.all().delete()
 
-    def _pre_action(self):
-        from django.conf import settings
-        self.DRAL_REFERENCE_LANGUAGE = settings.DRAL_REFERENCE_LANGUAGE
-        Language.add_default_languages()
-        self.languages = Language.get_languages()
-        self.messages = {
-            'error': '',
-            'messages': []
-        }
-
     def action_import(self):
-        try:
-            file_path = self.aargs.pop()
-            self.import_occurrences_from_file(file_path)
-        except DRTEXTException as e:
-            pass
+        def import_table_handler(table, root):
+            return self.import_table_occurrences(table, root)
+
+        self.import_sheets_from_file_arg(import_table_handler)
+
+    def action_import_sentences(self):
+        def import_table_handler(table, root):
+            return self.import_table_sentences(table, root)
+
+        self.import_sheets_from_file_arg(import_table_handler)
+
+    # =============================================================
+    # ACTIONS from other python modules
 
     def import_occurrences_from_file(self, file_path):
-        self._pre_action()
+        def import_table_handler(table, root):
+            return self.import_table_occurrences(table, root)
 
-        root = self.get_element_tree_from_file(file_path)
+        self.import_sheets_from_file(file_path, import_table_handler)
 
-        if root is not None:
-            for table in root.findall(".//table"):
-                self.import_table(table, root)
-                # break
-        else:
-            self.warn(
-                'File "{}" is empty or not found.'.format(file_path),
-                0,
-                'ERROR'
-            )
+    def import_sentences_from_file(self, file_path):
+        def import_table_handler(table, root):
+            return self.import_table_sentences(table, root)
 
-    def get_messages(self):
-        return self.messages
+        self.import_sheets_from_file(file_path, import_table_handler)
 
-    def _init_import_table(self, chapter):
+    # =============================================================
+    # OCCURENCES
+
+    def _init_import_table_occurrences(self, chapter):
         '''
         Initialise the import statistics.
         Read and cache all occurrences and Lemmas from DB to speed up
         the import of a table.
         '''
 
-        self.first_block_line_types = None
+        self.previous_block_line_types = None
 
         self.stats = {
             'cells.created': 0,
@@ -129,7 +131,7 @@ import_sentences PATH_TO_CONTENT.XML
             in Lemma.objects.all()
         }
 
-    def import_table(self, xml_table, xml_root):
+    def import_table_occurrences(self, xml_table, xml_root):
         '''
         Import the spreadsheet/table rows;
         identify blocks of rows that belong to the same english lemma
@@ -146,7 +148,7 @@ import_sentences PATH_TO_CONTENT.XML
 
         self.chapter = Chapter.update_or_create_from_table_name(table_name)
 
-        self._init_import_table(self.chapter)
+        self._init_import_table_occurrences(self.chapter)
 
         self.msg('Importing styles...')
         self.reimport_table_styles(xml_root, self.chapter)
@@ -185,9 +187,9 @@ import_sentences PATH_TO_CONTENT.XML
             if anchor and not added:
                 block.append(values[:row_len])
 
-        self._post_import_table()
+        self._post_import_table_occurrences()
 
-    def _post_import_table(self):
+    def _post_import_table_occurrences(self):
         '''
         Bulk creation of new occurrences in DB.
         Delete unused occurrences from DB.
@@ -213,8 +215,8 @@ import_sentences PATH_TO_CONTENT.XML
 
         # remove unused chapters
         Chapter.objects.annotate(
-            num_occs=Count('occurence')
-        ).filter(num_occs__lt=1).delete()
+            num_occs=Count('occurence'), num_sentences=Count('sentence')
+        ).filter(num_occs__lt=1, num_sentences__lt=1).delete()
 
         self.msg(
             'Cells: (C:%s U:%s D:%s); Keywords: (C:%s U:%s)' % (
@@ -266,19 +268,17 @@ import_sentences PATH_TO_CONTENT.XML
         forms = re.sub(r'^\((.*)\)$', r'\1', forms)
         forms = ', '.join([f.strip() for f in forms.split(',')])
 
-        if not self.first_block_line_types:
-            self.first_block_line_types = lines.keys()
-
-        differences = (
-            set(lines.keys()) ^ self.first_block_line_types
-        )
-
-        if differences:
-            self.warn(
-                'Block with mising or unexpected row: ' +
-                ','.join(differences),
-                line_number
+        if self.previous_block_line_types:
+            differences = (
+                set(lines.keys()) ^ self.previous_block_line_types
             )
+
+            if differences:
+                self.warn(
+                    'Block with mising or unexpected row: ' +
+                    ','.join(differences),
+                    line_number
+                )
 
         # report discrepancies in line lengths within a block
         line_lens = [len(line) for line in lines.values()]
@@ -295,6 +295,8 @@ import_sentences PATH_TO_CONTENT.XML
                 line_number
             )
 
+        self.previous_block_line_types = lines.keys()
+
         return lines, lemma, forms, freq, min_line_len
 
     def process_lemma_block(self, block, line_number):
@@ -302,6 +304,10 @@ import_sentences PATH_TO_CONTENT.XML
         Process a lemma block from the spreadsheet
         The block contains an array or rows.
         Format of each row describe in get_values_next_row()
+
+        string:
+            ?: for empty cell
+            ??: for EN cell that doesn't contain a form
         '''
 
         lines, lemma, forms, freq, min_line_len =\
@@ -341,8 +347,13 @@ import_sentences PATH_TO_CONTENT.XML
                 continue
             # todo: remove this once the error has been corrected in file
             # PL => POL
+            lg = lg.strip().upper()
             if lg == 'PL':
                 lg = 'POL'
+
+            if lg not in self.languages:
+                self.languages[lg] = Language.get_or_create_from_name(lg)
+
             styles = {}
 
             for i, v in enumerate(line):
@@ -400,100 +411,28 @@ import_sentences PATH_TO_CONTENT.XML
             occurence = Occurence(**occurence_data)
             self.occurences_to_create.append(occurence)
 
-    def action_import_sentences(self):
-        self._pre_action()
-
-        self.msg('Delete all sentences')
-        Sentence.objects.delete()
-
-        self.languages = self.languages
-
-        import os
-
-        while self.aargs:
-            ods_path = self.aargs.pop()
-            file_path = '/tmp/dral_sent_content.xml'
-            os.system('unzip -p %s content.xml > %s' % (ods_path, file_path))
-            content = self._read_file(file_path, encoding='utf-8')
-
-            import re
-            content = re.sub(
-                r'(table|office|style|text|draw|fo):', '', content
-            )
-
-            root = ET.fromstring(content)
-
-            for table in root.findall(".//table"):
-                table_name = table.attrib['name']
-
-                match = re.match(
-                    '^(BENJY|QUENTIN|JASON|DILSEY)_([A-Z]{2,3})$',
-                    table_name
-                )
-                if not match:
-                    self.msg('WARNING: Skipped table %s' % table_name)
-                    continue
-                chapter, language_name = match.group(1), match.group(2)
-                self.msg(chapter, language_name)
-
-                if language_name == 'PL':
-                    language_name = 'POL'
-
-                language = Language.objects.filter(name=language_name).first()
-
-                if not language:
-                    self.msg(
-                        'WARNING: Skipped table %s (unrecognised language %s)'
-                        % (table_name, language_name)
-                    )
-                    continue
-
-                # import table
-                values = [None for i in range(0, MAX_CELL_PER_ROW)]
-
-                line = 0
-
-                for cols in self.get_values_next_row(table, values):
-                    line += 1
-
-                    if line % 2 == 0:
-                        # self.msg(line)
-
-                        string = string = values[1][0]
-                        if string is None:
-                            string = ''
-                        if len(string) > 500:
-                            string = string[0:500]
-
-                        index = int(values[0][0] or 0)
-
-                        sentence = Sentence(
-                            string=string,
-                            language=language,
-                            index=index,
-                            chapter=chapter,
-                            cell_line=line,
-                            cell=string,
-                        )
-                        sentence.save()
-
     def _clean_occurrence_data(self, data):
         # todo: move this to the model
 
         if data['language'].name == self.DRAL_REFERENCE_LANGUAGE:
-            forms = [re.sub(r'[() ]', '', f).lower()
-                     for f in data['lemma'].forms.split(',')]
+            forms = [
+                re.sub(r'[() ]', '', f).lower()
+                for f in data['lemma'].forms.split(',')
+            ]
 
             cell = data['cell']
 
             v = None
             if cell != 'ZERO':
                 cell = cell.lower()
-                v = '?'
+                v = '??'
                 for form in sorted(forms, key=lambda f: -len(f)):
                     if form in cell:
                         v = form
                         break
+
+                if 0 and v == '??':
+                    print('?? ', cell, forms)
 
                 v = v[:20]
 
@@ -530,9 +469,178 @@ import_sentences PATH_TO_CONTENT.XML
 
             data['string'] = v
 
-    def action_clean(self):
-        self._pre_action()
+    # ===============================================================
+    # SENTENCES
 
+    def import_table_sentences_old(self):
+
+        self.msg('Delete all sentences')
+        Sentence.objects.all().delete()
+
+        self.languages = self.languages
+
+        while self.aargs:
+            ods_path = self.aargs.pop()
+            file_path = '/tmp/dral_sent_content.xml'
+            os.system('unzip -p %s content.xml > %s' % (ods_path, file_path))
+            content = self._read_file(file_path, encoding='utf-8')
+
+            content = re.sub(
+                r'(table|office|style|text|draw|fo):', '', content
+            )
+
+            root = ET.fromstring(content)
+
+            for table in root.findall(".//table"):
+                table_name = table.attrib['name']
+
+                match = re.match(
+                    '^(BENJY|QUENTIN|JASON|DILSEY)_([A-Z]{2,3})$',
+                    table_name
+                )
+                if not match:
+                    self.msg('WARNING: Skipped table %s' % table_name)
+                    continue
+                chapter, language_name = match.group(1), match.group(2)
+                self.msg(chapter, language_name)
+
+                if language_name == 'PL':
+                    language_name = 'POL'
+
+                language = Language.objects.filter(name=language_name).first()
+
+                if not language:
+                    self.msg(
+                        'WARNING: Skipped table %s (unrecognised language %s)'
+                        % (table_name, language_name)
+                    )
+                    continue
+
+    def import_table_sentences(self, xml_table, xml_root):
+        '''
+        Import the spreadsheet/table rows;
+        identify blocks of rows that belong to the same english lemma
+        extract and import the occurrence strings and metadata
+        '''
+        table_name = xml_table.attrib['name'].rstrip('_').strip(' ')
+        skipped = ''
+        if (table_name.startswith('_') or
+                table_name.lower().startswith('sheet')):
+            skipped = ' (skipped)'
+        self.msg('> Table "%s"%s' % (table_name, skipped))
+        if skipped:
+            return
+
+        # split
+        # 'BENJY_EN' 'BENJY EN'
+        matches = re.findall(
+            r'^(.*?)[_ ]+(\w+)$', table_name
+        )
+        if not matches:
+            self.warn(
+                (
+                    'Unsupported sheet name "%s".' +
+                    ' Must have following format: "BENJY EN"'
+                ).format(table_name),
+            )
+            return
+
+        chapter = Chapter.update_or_create_from_table_name(matches[0][0])
+        language = Language.get_or_create_from_name(matches[0][1])
+
+        self.msg('Import all sentences')
+        values = [None for i in range(0, MAX_CELL_PER_ROW)]
+
+        line = 0
+        index = 0
+
+        # process each row one at a time
+        sentence_count = 0
+        for row_len in self.get_rows_from_xml_table(xml_table, values):
+            line += 1
+            if line < 2:
+                # skip the headers
+                continue
+
+            string = string = values[1][0]
+            if string is None:
+                string = ''
+            if len(string) > 500:
+                string = string[0:500]
+
+            if not ((values[0][0] or '') + (values[1][0] or '')).strip():
+                # empty line
+                continue
+
+            try:
+                index = int(values[0][0])
+            except ValueError:
+                self.warn('Invalid sentence number (row {})'.format(
+                    line
+                ))
+                continue
+
+            Sentence.objects.update_or_create(
+                language=language,
+                chapter=chapter,
+                index=index,
+                defaults=dict(
+                    string=string,
+                    cell_line=line
+                )
+            )
+            sentence_count += 1
+
+        self.msg(' {} sentences'.format(sentence_count))
+
+        self.msg('Delete left-over sentences')
+        Sentence.objects.filter(
+            chapter=chapter, language=language, index__gt=index
+        ).delete()
+
+    # ===============================================================
+    # styles
+
+    def reimport_table_styles(self, xml_root, chapter):
+        root = xml_root
+
+        self.styles = {
+            s.name: s
+            for s
+            in SheetStyle.objects.filter(chapter=chapter)
+        }
+
+        for style in root.findall(".//style"):
+            properties = style.find('table-cell-properties')
+            color = ''
+            if properties is not None:
+                color = properties.attrib.get('background-color', color)
+            name = style.attrib['name']
+            data = {
+                'name': name,
+                'chapter': chapter,
+                'color': color
+            }
+
+            has_changed = 0
+            style_model = self.styles.get(name)
+            if style_model:
+                for f, v in data.items():
+                    if getattr(style_model, f) != v:
+                        setattr(style_model, f, v)
+                        has_changed = 1
+            else:
+                has_changed = 1
+                self.styles[name] = style_model = SheetStyle(**data)
+
+            if has_changed:
+                # print('updated' if style_model.pk else 'created')
+                style_model.save()
+
+    # ===============================================================
+    # CLEAN
+
+    def _action_clean(self):
         import difflib
 
         # todo: move this to the model
@@ -607,6 +715,45 @@ import_sentences PATH_TO_CONTENT.XML
             occurence.string = v
 
             occurence.save()
+
+    # =============================================================
+    # INPUT FILE PROCESSING
+
+    def _pre_action(self):
+        from django.conf import settings
+        self.DRAL_REFERENCE_LANGUAGE = settings.DRAL_REFERENCE_LANGUAGE
+        Language.add_default_languages()
+        self.languages = Language.get_languages()
+        self.messages = {
+            'error': '',
+            'messages': []
+        }
+
+    def import_sheets_from_file_arg(self, import_table_handler):
+        try:
+            file_path = self.aargs.pop()
+            self.import_sheets_from_file(file_path, import_table_handler)
+        except DRTEXTException:
+            pass
+
+    def import_sheets_from_file(self, file_path, import_table_handler):
+        self._pre_action()
+
+        root = self.get_element_tree_from_file(file_path)
+
+        if root is not None:
+            for table in root.findall(".//table"):
+                import_table_handler(table, root)
+                # break
+        else:
+            self.warn(
+                'File "{}" is empty or not found.'.format(file_path),
+                0,
+                'ERROR'
+            )
+
+    def get_messages(self):
+        return self.messages
 
     def warn(self, message, line_number=None, status='WARNING'):
         self.msg(message, line_number, status=status)
@@ -707,46 +854,9 @@ import_sentences PATH_TO_CONTENT.XML
                 status='ERROR'
             )
 
-        import re
         content = re.sub(r'(table|office|style|text|draw|fo):', '', content)
 
         return ET.fromstring(content)
-
-    def reimport_table_styles(self, xml_root, chapter):
-        root = xml_root
-
-        self.styles = {
-            s.name: s
-            for s
-            in SheetStyle.objects.filter(chapter=chapter)
-        }
-
-        for style in root.findall(".//style"):
-            properties = style.find('table-cell-properties')
-            color = ''
-            if properties is not None:
-                color = properties.attrib.get('background-color', color)
-            name = style.attrib['name']
-            data = {
-                'name': name,
-                'chapter': chapter,
-                'color': color
-            }
-
-            has_changed = 0
-            style_model = self.styles.get(name)
-            if style_model:
-                for f, v in data.items():
-                    if getattr(style_model, f) != v:
-                        setattr(style_model, f, v)
-                        has_changed = 1
-            else:
-                has_changed = 1
-                self.styles[name] = style_model = SheetStyle(**data)
-
-            if has_changed:
-                # print('updated' if style_model.pk else 'created')
-                style_model.save()
 
     def _get_int(self, integer_str, default=0):
         try:

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags dral_wagtail_tags %}
+
+{% block header %}
+    <header>
+        <a href="/">DRaL</a>
+        &gt;
+        <a href="/import/">Import</a>
+        &gt;
+        <span class="page-title">{{ page.title }}</span>
+    </header>
+{% endblock %}
+
+{% block main %}
+
+<form method="post" action="">
+    {% csrf_token %}
+
+    <p>
+        Tick the dimensions
+        you would like to completely remove from the database.
+    </p>
+
+    <h3>Languages</h3>
+    {% for lang in languages %}
+        <label>
+            <input type="checkbox" name="lg-{{ lang.pk }}" value="1" >
+            {{ lang.name }}
+        </label>
+    {% endfor %}
+
+    <h3>Chapters</h3>
+    {% for chapter in chapters %}
+        <label>
+            <input type="checkbox" name="ch-{{ chapter.pk }}" value="1" >
+            {{ chapter.name }}
+        </label>
+    {% endfor %}
+
+    <p>
+        <button>Clean</button>
+    </p>
+</form>
+
+{% endblock %}

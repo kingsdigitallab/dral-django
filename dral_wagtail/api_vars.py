@@ -75,12 +75,14 @@ class API_Vars(object):
             self.set(name, values)
 
     def reset_vars_from_request(self, request):
+        '''selected value(s) from the request'''
         for var in self.vars.values():
             values = request.GET.get(var['key'], None)
 
             self.set(var['key'], values)
 
     def set(self, akey, values=None):
+        '''selected value(s) for the given var key'''
         '''
         values = ['option1_key', 'option3_key']
         values = 'option1_key,option3_key'
@@ -110,7 +112,13 @@ class API_Vars(object):
                 value = int(value)
             self.vars[akey]['value'] = value
 
+    def get_all_options(self, akey):
+        var = self.vars.get(akey, {})
+
+        return var.get('options', [])
+
     def get(self, akey, first=False, prop='key'):
+        '''return the selected value(s) for the given var key'''
         if 'options' in self.vars[akey]:
             ret = [
                 option.get(prop)

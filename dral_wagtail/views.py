@@ -18,7 +18,6 @@ class Visualisation(object):
         )
 
     def process_request(self, visualisation_code, context, request):
-        self.visualisation_code = visualisation_code
         self.context = context
         self.request = request
 
@@ -33,18 +32,21 @@ class Visualisation(object):
 
         return ret
 
-    def get_config_schema(self, alignment_data=None):
-        # cache = caches['kiln']
+    def get_visualisations_list(self):
+        return API_Vars(self.get_config_schema()).get_all_options('viz')
+
+    def get_config_schema(self):
 
         ret = [
             {
                 'key': 'viz',
                 'default': 'relative_omission',
-                'options': ['relative_omission',
-                            'relative_omission_calendar',
-                            'variants_progression',
-                            'proof_read'
-                            ],
+                'options': [
+                    'relative_omission',
+                    'relative_omission_calendar',
+                    'variants_progression',
+                    'proof_read'
+                ],
                 'name': 'Visualisation',
                 'type': 'single',
             },
@@ -83,7 +85,6 @@ class Visualisation(object):
             },
         ]
 
-        # cache.set('alignment_config_options', ret)
         return ret
 
     def view_visualisation(self):
@@ -91,7 +92,6 @@ class Visualisation(object):
         config = self.config = self.get_config()
         self.context['config'] = config.get_list()
 
-        # code = self.visualisation_code.replace('-', '_')
         code = config.get('viz', 1)
 
         method = getattr(self, 'visualisation_{}'.format(code))
@@ -232,34 +232,45 @@ class Visualisation(object):
                     block = {
                         'keyword': lemma,
                         'languages': [],
+                        'sidxs': [],
+                        'freq': 0,
+                        'omissions': 0,
                     }
 
                 if lg != last_lg:
                     strings = []
-                    block['languages'].append({
+                    language = {
                         'name': occ.language.name,
                         'strings': strings,
-                    })
+                        'omissions': 0,
+                        # number of ? or ??
+                        'unknowns': 0,
+                    }
+                    block['languages'].append(language)
 
-                strings.append(occ.string)
+                if lg.name == settings.DRAL_REFERENCE_LANGUAGE:
+                    block['sidxs'].append(occ.sentence_index)
+                    if occ.string:
+                        block['freq'] += 1
+
+                strings.append(occ)
+                if occ.string is None:
+                    block['omissions'] += 1
+                    language['omissions'] += 1
+                if occ.string in ['?', '??']:
+                    language['unknowns'] += 1
 
                 last_lg = lg
                 last_lemma = lemma
 
+            # add last block
+            if block and blocks and blocks[-1] != block:
+                blocks.append(block)
+
             if sort_by == 'frequency':
-                blocks = sorted(blocks, key=lambda b: -len(
-                    b['languages'][0]['strings']
-                ))
+                blocks = sorted(blocks, key=lambda b: -b['freq'])
             if sort_by == 'omission':
-                blocks = sorted(blocks, key=lambda b: -sum([
-                    sum([
-                        1 for s
-                        in l['strings']
-                        if s is None
-                    ])
-                    for l
-                    in b['languages']
-                ]))
+                blocks = sorted(blocks, key=lambda b: -b['omissions'])
 
             data_chapter = {
                 'name': chapter,

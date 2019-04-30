@@ -28,6 +28,7 @@ OR
         || language
             word
 '''
+from django.utils.text import slugify
 
 
 class Lemma(models.Model):
@@ -62,6 +63,8 @@ class Chapter(models.Model):
         .display_order = 2
 
         If the chapter with that slug already exists, data will be updated.
+
+        If the chapter order is missing it won't be changed in the database.
         '''
 
         ret = None
@@ -71,10 +74,13 @@ class Chapter(models.Model):
         # parse table_name
         data = {}
         data['name'] = table_name.strip()
-        data['name'], data['display_order'] = re.findall(
+        data['name'], display_order = re.findall(
             r'^(.*?)[\s_]*(?:#(\d+))?$', data['name']
         )[0]
-        data['display_order'] = int(data['display_order'] or 0)
+        display_order = int(display_order or 0)
+        if display_order:
+            data['display_order'] = display_order
+
         data['slug'] = slugify(data['name'])
 
         ret, _ = Chapter.objects.update_or_create(
@@ -167,19 +173,44 @@ class Sentence(models.Model):
     index = models.IntegerField()
     #
     language = models.ForeignKey('Language', on_delete=models.PROTECT)
-    chapter = models.CharField(max_length=10, blank=True)
+    chapter = models.ForeignKey(
+        'Chapter',
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.PROTECT
+    )
     cell_line = models.IntegerField(default=0, blank=True)
-    cell = models.CharField(max_length=500, blank=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['index']),
+            models.Index(fields=['chapter']),
+            models.Index(fields=['language']),
+        ]
 
 
 class Language(models.Model):
+    slug = models.SlugField(max_length=20, null=True)
     name = models.CharField(max_length=20, unique=True)
 
     @classmethod
     def add_default_languages(cls):
         for name in ['EN', 'LT', 'POL', 'RU']:
-            obj, _ = cls.objects.get_or_create(name=name)
+            cls.objects.get_or_create(name=name)
 
     @classmethod
     def get_languages(cls):
         return {o.name: o for o in cls.objects.all()}
+
+    @classmethod
+    def get_or_create_from_name(cls, name):
+        slug = slugify(name)
+        ret, _ = cls.objects.get_or_create(
+            slug=slug,
+            defaults={
+                'name': name
+            }
+        )
+
+        return ret
