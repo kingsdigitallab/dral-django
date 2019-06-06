@@ -101,6 +101,8 @@ h2 {
 .bar,
 .bar rect {
   fill: $primary-color;
+  stroke: white;
+  stroke-width: 1px;
 }
 
 .bar text {
@@ -114,11 +116,10 @@ h2 {
 }
 
 .chart {
-  // background: darken($primary-color, 20%);
-  border-top: 1px solid white;
-  box-shadow: inset 0 0 0 2px white;
-  // height: 500px;
-  height: 25vh; // Dynamic height
+  border-top: 1px solid $primary-color;
+  // box-shadow: inset 0 0 0 2px white;
+  height: 20vh; // Dynamic height
+  margin-top: 35px;
   width: 100%;
 }
 
@@ -146,12 +147,15 @@ new-chapter {
 }
 
 .svg-viz {
-  height: 95vh;
-  width: 100%;
+  height: 80vh;
+  position: relative;
+  // width: 100%;
+  width: 10000px;
 
   h3 {
     color: $primary-color;
     margin-bottom: 0;
+    position: fixed;
   }
 }
 
@@ -174,6 +178,10 @@ new-chapter {
 
 .overlay {
     opacity: 0;
+
+    &.showme {
+      opacity: 0.3;
+    }
 }
 
 .square:hover {
@@ -343,5 +351,3 @@ p.error-message {
         background-color: red;
     }
 }
-
-

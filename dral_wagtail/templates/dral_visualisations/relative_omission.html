@@ -40,8 +40,10 @@
 
             var x = 0;
 
-            var width = 100.0 / this.length;
-            var width_rounded = round(width)
+            // GF - Hacking my way in to account for bar borders in the css
+            //      width was 100.0 / this.length
+            var width = 103.0 / this.length;
+            var width_rounded = round(width);
 
             $.each(data, function(i, d) {
                 var height_rounded = round(d.ratio_omitted * 100);
@@ -74,10 +76,44 @@
                     var idx = Math.floor(xm / (x1 - x0) * data.length);
                     data[idx]['omitted_pc'] = (data[idx]['ratio_omitted'] * 100.0).toFixed(1);
                     infobox_dict(data[idx]);
+
+                    // d3.select('rect.overlay')
+                    //   .attr('fill', 'orange')
+                    //   .attr('opacity', '0.3')
+                    //   .attr('class', 'showme');
+
+                    d3.select($viz.find('svg.chart')[0])
+                      .append('line')
+                        .attr('x1', xm)
+                        .attr('x2', xm)
+                        .attr('y1', '100')
+                        .attr('y2', '500')
+                        .attr('stroke', 'black');
+
+                    d3.select($viz.find('svg.chart')[1])
+                      .append('line')
+                        .attr('x1', xm)
+                        .attr('x2', xm)
+                        .attr('y1', '100')
+                        .attr('y2', '500')
+                        .attr('stroke', 'black');
+
+                    d3.select($viz.find('svg.chart')[2])
+                      .append('line')
+                        .attr('x1', xm)
+                        .attr('x2', xm)
+                        .attr('y1', '100')
+                        .attr('y2', '500')
+                        .attr('stroke', 'black')
+                        .attr('class', 'where');
                 }
             ).on(
                 'mouseout', function() {
                     infobox_dict({});
+                    // d3.select(this)
+                    //   .attr('opacity', '0');
+                    d3.selectAll('line')
+                      .remove();
                 }
             );
         });
