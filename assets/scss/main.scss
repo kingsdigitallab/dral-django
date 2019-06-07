@@ -161,11 +161,38 @@ h2 {
       display: block;
       position: relative;
       
+      .title text {
+        color: #222;
+        font-size: 0.8rem;
+        font-family: Verdana, Geneva, sans-serif;
+        font-weight: bold;
+      }
+
       .bar{
         fill: $primary-color;
         stroke: white;
         //// stroke-width: 1px;
         stroke-width: 0;
+      }
+
+      // GN
+      // http://vrl.cs.brown.edu/color
+      // ["#4553c2", "#097b35", "#bb5579", "#405752", "#d11f0b", "#1d7bc3"]
+      &.PO .bar, &.POL .bar {
+        fill: #bb5579;
+      }
+      &.RU .bar, &.RUS .bar {
+        fill: #4553c2;
+      }
+      &.LT .bar, &.LIT .bar {
+        fill: #097b35;
+      }
+
+      .axis-x {
+        text {
+          text-anchor: start;
+          color: grey;
+        }
       }
     
       .bar text {

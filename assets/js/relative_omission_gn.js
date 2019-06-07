@@ -1,6 +1,22 @@
 /*jshint esversion: 6 */
 "use strict";
 
+function get_lang_info(lang_code) {
+  var lang_codes = {
+      'LT': {
+          'label': 'Lituanian'
+      },
+      'RU': {
+          'label': 'Russian'
+      },
+      'POL': {
+          'label': 'Polish'
+      },
+  };
+  var ret = lang_codes[lang_code];
+  return ret;
+}
+
 function relative_omission() {
 
     var d3 = window.d3;
@@ -16,6 +32,7 @@ function relative_omission() {
     const dims = {
         ch: 200.0,         // total width of the svg (includes margins)
         // cw: 200.0,
+        // https://devdocs.io/d3~5/d3-scale#scaleImplicit
         step_width: 20,    // step width for the bars (see d3.js doc)
         bar_padding: 0.2,  // ratio of step width used as a gap between 2 bars
     };
@@ -26,6 +43,8 @@ function relative_omission() {
 
     // treat each dataset, one by one, one for each translatation
     $.each(window.vis_data, (lang, data) => {
+        var lang_info = get_lang_info(lang);
+
         // render the template and add it to viz div wrapper
         $charts_wrapper.append(window.apply_template(
             'chart-wrapper-template',
@@ -42,9 +61,14 @@ function relative_omission() {
           .attr('transform', 'translate('+margins.left+', '+margins.top+')');
         
         // scales & axes
-        var scale_y = d3.scaleLinear().domain([0, 1.0]).range([dims.h, 0]);
+        // var scale_y = d3.scaleLinear().domain([0, 1.0]).range([dims.h, 0]);
+        var scale_y = d3.scaleLinear().domain([0, 1.0]).range([0, dims.h]);
         var axis_y = chart_group.append('g').classed('axis-y', true)
-            .call(d3.axisLeft(scale_y).ticks(5, '%'));
+            .call(d3.axisLeft(scale_y)
+              .ticks(3, '%')
+              //.tickValues([0, 0.25, 0.5, 0.75, 1])
+              //.tickFormat(d3.format('%'))
+            );
 
         var scale_x = d3.scaleBand()
             .domain(data.map(d => d.lemma))
@@ -54,9 +78,16 @@ function relative_omission() {
 
         window.console.log(scale_x.step(), scale_x.bandwidth());
 
+        // http://bl.ocks.org/d3noob/ccdcb7673cdb3a796e13 (rotated labels)
         var axis_x = chart_group.append('g').classed('axis-x', true)
             .attr('transform', 'translate(0, '+dims.h+')')
-            .call(d3.axisBottom(scale_x));
+            //.attr('transform', 'translate(0, '+0+')')
+            .call(d3.axisTop(scale_x))
+            .selectAll('text')
+                .attr("y", "0.4em")
+                .attr("x", "0.7em")
+                .attr('transform', d => 'rotate(-'+90+')')
+        ;
 
         // bars
         chart_group.append('g').selectAll('.bar')
@@ -64,12 +95,23 @@ function relative_omission() {
             .append('rect')
                 .classed('bar', true)
                 .attr('x', d => scale_x(d.lemma))
-                .attr('y', d => scale_y(d.ratio_omitted))
+                //.attr('y', d => scale_y(d.ratio_omitted))
+                .attr('y', 0)
                 .attr('width', scale_x.bandwidth())
-                .attr('height', d => dims.h - scale_y(d.ratio_omitted))
+                //.attr('height', d => dims.h - scale_y(d.ratio_omitted))
+                .attr('height', d => scale_y(d.ratio_omitted))
+        ;
+
+        svg.append('g').classed('title', true)
+            .append('text')
+            .text(lang_info.label)
+            .attr('x', 0)
+            .attr('y', '1em')
         ;
 
     });
+
+
 }
 
 /*
