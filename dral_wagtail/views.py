@@ -43,6 +43,7 @@ class Visualisation(object):
                 'default': 'relative_omission',
                 'options': [
                     'relative_omission',
+                    'relative_omission_gn',
                     'relative_omission_calendar',
                     'variants_progression',
                     'proof_read'
@@ -281,6 +282,10 @@ class Visualisation(object):
         self.context['vis_data'] = {
             'chapters': data_chapters
         }
+
+    def visualisation_relative_omission_gn(self):
+        ret = self.visualisation_relative_omission()
+        return ret
 
     def visualisation_relative_omission(self):
         '''

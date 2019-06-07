@@ -89,6 +89,8 @@ h2 {
   padding: 10px;
 }
 
+/* VISUALISATIONS */
+
 #visualisation {
   canvas {
     background: #e8e8e8;
@@ -98,28 +100,85 @@ h2 {
 }
 
 /* SVG */
-.bar,
-.bar rect {
-  fill: $primary-color;
-  stroke: white;
-  stroke-width: 1px;
+.relative-omission {
+  height: 80vh;
+  position: relative;
+  // width: 100%;
+  width: 10000px;
+
+  h3 {
+    color: $primary-color;
+    margin-bottom: 0;
+    position: fixed;
+  }
+
+  .chart {
+    border-top: 1px solid $primary-color;
+    // box-shadow: inset 0 0 0 2px white;
+    height: 20vh; // Dynamic height
+    margin-top: 35px;
+    width: 100%;
+  }
+
+  .bar,
+  .bar rect {
+    fill: $primary-color;
+    stroke: white;
+    stroke-width: 1px;
+  }
+
+  .bar text {
+    fill: #fff;
+    font: 10px sans-serif;
+  }
 }
 
-.bar text {
-  fill: #fff;
-  font: 10px sans-serif;
+.relative-omission-gn {
+  &.fit-width .chart {
+    width: 100%;
+  }
+
+  .chart-wrapper {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: 30vh;
+    // padding-bottom: 100%;
+    // vertical-align: top;
+    // overflow: hidden;
+
+    .chart {
+      // border-top: 1px solid $primary-color;
+      // box-shadow: inset 0 0 0 2px white;
+      //// height: 20vh; // Dynamic height
+      // margin-top: 35px;
+      // width: 100%;
+      // display: inline-block;
+      // position: absolute;
+      // top: 0;
+      // left: 0;
+      height: 100%;
+      display: block;
+      position: relative;
+      
+      .bar{
+        fill: $primary-color;
+        stroke: white;
+        //// stroke-width: 1px;
+        stroke-width: 0;
+      }
+    
+      .bar text {
+        fill: #fff;
+        font: 10px sans-serif;
+      }
+    }
+  
+  }
 }
 
 .calendar {
   height: 500px;
-  width: 100%;
-}
-
-.chart {
-  border-top: 1px solid $primary-color;
-  // box-shadow: inset 0 0 0 2px white;
-  height: 20vh; // Dynamic height
-  margin-top: 35px;
   width: 100%;
 }
 
@@ -146,18 +205,6 @@ new-chapter {
   stroke: white;
 }
 
-.svg-viz {
-  height: 80vh;
-  position: relative;
-  // width: 100%;
-  width: 10000px;
-
-  h3 {
-    color: $primary-color;
-    margin-bottom: 0;
-    position: fixed;
-  }
-}
 
 // GN: july 2018
 
@@ -189,6 +236,7 @@ new-chapter {
 }
 
 // ------
+// Viz Settings overlay 
 
 .option-selected {
     background: #f0f0e0;

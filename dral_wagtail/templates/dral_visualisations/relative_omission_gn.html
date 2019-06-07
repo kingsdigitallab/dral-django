@@ -1,0 +1,32 @@
+{% load dral_wagtail_tags %}
+
+{# {language: "LT", ratio_omitted: 0, lemma: "PACKAGE", omitted: 0, freq: 3} #}
+{% verbatim %}
+    <div id="infobox">
+        <template v-if="d.language">
+            <div>
+              Repeteme: {{ d.lemma }};
+              Frequency (EN): {{ d.freq }};
+              Omissions ({{ d.language }}): {{ d.omitted }} ({{ d.omitted_pc }} %);
+            </div>
+        </template>
+    </div>
+
+  <div class="charts-wrapper relative-omission-gn">
+  </div>
+
+  <div class="template chart-wrapper-template">
+      <div class="chart-wrapper">
+        <!-- h3>{{language}}</h3 -->
+        <svg class="chart {{language}}" data-language="{{language}}">
+        </svg>
+      </div>
+  </div>
+{% endverbatim %}
+
+<script>
+    window.vis_data = {{ vis_data|json }};
+    {# % include "dral_visualisations/relative_omission.js" % #}
+    relative_omission();
+</script>
+<!-- script type="text/javascript" src="/static/js/relative_omission.js"></script -->
