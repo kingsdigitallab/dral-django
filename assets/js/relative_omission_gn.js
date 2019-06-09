@@ -30,7 +30,7 @@ function relative_omission() {
     var $charts_wrapper = $('.charts-wrapper');
     const margins = {top: 20, right: 20, bottom: 20, left: 35};
     const dims = {
-        ch: 200.0,         // total width of the svg (includes margins)
+        ch: 200.0,         // total height of the svg (includes margins)
         // cw: 200.0,
         // https://devdocs.io/d3~5/d3-scale#scaleImplicit
         step_width: 20,    // step width for the bars (see d3.js doc)
@@ -76,7 +76,7 @@ function relative_omission() {
             .padding(dims.bar_padding)
         ;
 
-        window.console.log(scale_x.step(), scale_x.bandwidth());
+        // window.console.log(scale_x.step(), scale_x.bandwidth());
 
         // http://bl.ocks.org/d3noob/ccdcb7673cdb3a796e13 (rotated labels)
         var axis_x = chart_group.append('g').classed('axis-x', true)
@@ -90,7 +90,8 @@ function relative_omission() {
         ;
 
         // bars
-        chart_group.append('g').selectAll('.bar')
+        var bars = chart_group.append('g');
+        bars.selectAll('.bar')
             .data(data).enter()
             .append('rect')
                 .classed('bar', true)
@@ -102,6 +103,16 @@ function relative_omission() {
                 .attr('height', d => scale_y(d.ratio_omitted))
         ;
 
+        bars.append('line')
+            .classed('cursor', true)
+            .attr('x1', 0)
+            .attr('x2', 0)
+            .attr('y1', 0)
+            .attr('y2', scale_y(1.0))
+            .classed('show', false);
+        ;
+
+        // title of the chart
         svg.append('g').classed('title', true)
             .append('text')
             .text(lang_info.label)
@@ -109,6 +120,63 @@ function relative_omission() {
             .attr('y', '1em')
         ;
 
+        function on_leave_bar() {
+          window.infobox_dict({});
+          d3.selectAll('body .bar.highlighted').classed('highlighted', false);
+          d3.selectAll('.cursor')
+            .classed('show', false);
+        }
+
+        // mouseover
+        // We don't attach an event to every bar:
+        // a) that would be prohibitive
+        // b) user couldn't select lemma without omissions (0-height bar)
+        // See https://bl.ocks.org/mbostock/3902569
+        svg.on(
+          'mousemove', function(a,b,c) {
+              var xy = d3.mouse(this);
+              
+              // TODO: better way to get the index from mouse coord
+              // var x0 = 0, x1 = $svg_group.parent().width();
+              // var idx = Math.floor(xm / (x1 - x0) * data.length);
+              var idx = (xy[0] - margins.left - scale_x.paddingOuter() * scale_x.step()) / scale_x.step();
+              idx = Math.floor(idx);
+
+              // data[idx]['omitted_pc'] = (data[idx]['ratio_omitted'] * 100.0).toFixed(1);
+              
+              // window.console.log(idx, data[idx], data);
+
+              if (data[idx]) {
+                  on_leave_bar();
+                  var bar = bars.select('.bar:nth-child('+(idx+1)+')');
+                  bar.classed('highlighted', true);
+
+                  bar.datum().omitted_pc = (bar.datum().ratio_omitted * 100.0).toFixed(1);
+
+                  //window.infobox_dict(data[idx]);
+                  window.infobox_dict(bar.datum());
+
+                  var x0 = scale_x(bar.datum().lemma);
+                  console.log(x0);
+                  d3.selectAll('.cursor')
+                    .attr('x1', x0)
+                    .attr('x2', x0)
+                    .classed('show', true);
+                  ;
+
+                  //bars.select('.bar').classed('highlighted', true);
+                  //bars.select('.bar').attr('fill', 'yellow');
+              } else {
+                  on_leave_bar();
+              }
+          }
+        );
+        svg.on(
+          'mouseout', function(a,b,c) {
+            on_leave_bar();
+          }
+        );
+        
     });
 
 
