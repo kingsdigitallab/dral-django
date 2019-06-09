@@ -75,17 +75,17 @@ function relative_omission() {
         var axis_y = chart_group.append('g').classed('axis-y', true)
             .call(d3.axisLeft(scale_y)
               .ticks(3, '%')
+              // TODO: add more ticks on Y axes but d3.js won't listen!
               //.tickValues([0, 0.25, 0.5, 0.75, 1])
               //.tickFormat(d3.format('%'))
-            );
+            )
+        ;
 
         var scale_x = d3.scaleBand()
             .domain(data.map(d => d.lemma))
             .range([0, dims.w])
             .padding(dims.bar_padding)
         ;
-
-        // log(scale_x.step(), scale_x.bandwidth());
 
         // http://bl.ocks.org/d3noob/ccdcb7673cdb3a796e13 (rotated labels)
         var axis_x = chart_group.append('g').classed('axis-x', true)
@@ -105,10 +105,8 @@ function relative_omission() {
             .append('rect')
                 .classed('bar', true)
                 .attr('x', d => scale_x(d.lemma))
-                //.attr('y', d => scale_y(d.ratio_omitted))
                 .attr('y', 0)
                 .attr('width', scale_x.bandwidth())
-                //.attr('height', d => dims.h - scale_y(d.ratio_omitted))
                 .attr('height', d => scale_y(d.omitted / d.freq))
         ;
 

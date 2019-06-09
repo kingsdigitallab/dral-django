@@ -359,7 +359,7 @@ class Visualisation(object):
         elif sort_by == 'omission':
             def sort_key_omission(r):
                 return -(1.0 * r['omitted']) / r['freq']
-            sort_key = sort_key
+            sort_key = sort_key_omission
         else:
             query += '''
                 order by freq desc, lemma
