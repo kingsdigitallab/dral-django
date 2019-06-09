@@ -1,6 +1,10 @@
 /*jshint esversion: 6 */
 "use strict";
 
+function log() {
+  window.console.log.apply(null, arguments)
+}
+
 function get_lang_info(lang_code) {
   var lang_codes = {
       'LT': {
@@ -25,7 +29,7 @@ function relative_omission() {
 
     var data_size = Object.values(window.vis_data)[0].length;
 
-    window.console.log(window.vis_data, Object.values(window.vis_data)[0], data_size);
+    log(window.vis_data, Object.values(window.vis_data)[0], data_size);
 
     var $charts_wrapper = $('.charts-wrapper');
     const margins = {top: 20, right: 20, bottom: 20, left: 35};
@@ -53,6 +57,7 @@ function relative_omission() {
         var chart_wrapper = d3.select($charts_wrapper.children(':last')[0]);
 
         // update the svg element
+        // https://chartio.com/resources/tutorials/how-to-resize-an-svg-when-the-window-is-resized-in-d3-js/
         var svg = chart_wrapper.select('.chart');
         svg.attr('viewBox', '0 0 '+dims.cw+' '+dims.ch)
         //  .attr("preserveAspectRatio", "xMinYMin meet")
@@ -76,7 +81,7 @@ function relative_omission() {
             .padding(dims.bar_padding)
         ;
 
-        // window.console.log(scale_x.step(), scale_x.bandwidth());
+        // log(scale_x.step(), scale_x.bandwidth());
 
         // http://bl.ocks.org/d3noob/ccdcb7673cdb3a796e13 (rotated labels)
         var axis_x = chart_group.append('g').classed('axis-x', true)
@@ -120,11 +125,20 @@ function relative_omission() {
             .attr('y', '1em')
         ;
 
+        // for optimisation purpose
+        window.viz_highlights = null;
+        window.viz_cursors = null;
+
         function on_leave_bar() {
-          window.infobox_dict({});
-          d3.selectAll('body .bar.highlighted').classed('highlighted', false);
-          d3.selectAll('.cursor')
-            .classed('show', false);
+            window.infobox_dict({});
+            if (window.viz_cursors)
+                window.viz_cursors.classed('show', false);
+            clear_highlight();
+        }
+
+        function clear_highlight() {
+            if (window.viz_highlights)
+                window.viz_highlights.classed('highlighted', false);
         }
 
         // mouseover
@@ -142,37 +156,38 @@ function relative_omission() {
               var idx = (xy[0] - margins.left - scale_x.paddingOuter() * scale_x.step()) / scale_x.step();
               idx = Math.floor(idx);
 
-              // data[idx]['omitted_pc'] = (data[idx]['ratio_omitted'] * 100.0).toFixed(1);
-              
-              // window.console.log(idx, data[idx], data);
-
               if (data[idx]) {
-                  on_leave_bar();
                   var bar = bars.select('.bar:nth-child('+(idx+1)+')');
+                  if (bar.classed('highlighted')) return;
+
+                  clear_highlight();
                   bar.classed('highlighted', true);
 
-                  bar.datum().omitted_pc = (bar.datum().ratio_omitted * 100.0).toFixed(1);
+                  window.viz_highlights = bar;
 
-                  //window.infobox_dict(data[idx]);
-                  window.infobox_dict(bar.datum());
+                  var datum = bar.datum();
 
-                  var x0 = scale_x(bar.datum().lemma);
-                  console.log(x0);
-                  d3.selectAll('.cursor')
+                  datum.omitted_pc = (datum.ratio_omitted * 100.0).toFixed(1);
+                  datum.language_full = get_lang_info(datum.language).label;
+
+                  window.infobox_dict(datum);
+
+                  var x0 = scale_x(datum.lemma);
+                  if (!window.viz_cursors)
+                    window.viz_cursors = d3.selectAll('.cursor');
+                  window.viz_cursors
                     .attr('x1', x0)
                     .attr('x2', x0)
-                    .classed('show', true);
+                    .classed('show', true)
                   ;
 
-                  //bars.select('.bar').classed('highlighted', true);
-                  //bars.select('.bar').attr('fill', 'yellow');
               } else {
                   on_leave_bar();
               }
           }
         );
         svg.on(
-          'mouseout', function(a,b,c) {
+          'mouseleave', function(a,b,c) {
             on_leave_bar();
           }
         );

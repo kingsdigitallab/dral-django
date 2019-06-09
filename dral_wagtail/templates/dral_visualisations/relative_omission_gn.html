@@ -5,9 +5,10 @@
     <div id="infobox">
         <template v-if="d.language">
             <div>
-              Repeteme: {{ d.lemma }};
-              Frequency (EN): {{ d.freq }};
-              Omissions ({{ d.language }}): {{ d.omitted }} ({{ d.omitted_pc }} %);
+              Repeteme "{{ d.lemma }}" 
+              occurs {{ d.freq }} times in English 
+              and is omitted {{ d.omitted }} time ({{ d.omitted_pc }} %)
+              in {{ d.language_full }}
             </div>
         </template>
     </div>
