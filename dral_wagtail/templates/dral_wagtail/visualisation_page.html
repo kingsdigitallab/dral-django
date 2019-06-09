@@ -180,6 +180,11 @@
                         data: {
                             d: {},
                         },
+                        filters: {
+                            percent: function(val, total) {
+                                return Math.round((val / total) * 1000) / 10;
+                            }
+                        }
                     });
                 });
             }

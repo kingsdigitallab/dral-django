@@ -3,11 +3,11 @@
 {# {language: "LT", ratio_omitted: 0, lemma: "PACKAGE", omitted: 0, freq: 3} #}
 {% verbatim %}
     <div id="infobox">
-        <template v-if="d.language">
+        <template v-if="d.lemma">
             <div>
               Repeteme "{{ d.lemma }}" 
               occurs {{ d.freq }} times in English 
-              and is omitted {{ d.omitted }} time ({{ d.omitted_pc }} %)
+              and is omitted {{ d.omitted }} times ({{ d.omitted | percent(d.freq) }} %)
               in {{ d.language_full }}
             </div>
         </template>

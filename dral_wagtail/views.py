@@ -292,10 +292,11 @@ class Visualisation(object):
         For each unique (lemma, lg) pair we get:
             * the frequency (sc.qt)
             * the number of ommissions (zc.qt)
+                le.string as lemma, la.name as language, sc.qt as freq,
         '''
         query = r'''
             select
-                le.string as lemma, la.name as language, sc.qt as freq,
+                le.string as lemma, sc.qt as freq,
                 coalesce(zc.qt::float, 0.0) omitted,
                 coalesce(zc.qt::float, 0.0) / (sc.qt::float) as ratio_omitted
             from
@@ -325,31 +326,57 @@ class Visualisation(object):
             and la.name = %s
         '''
 
+        query = r'''
+            select
+                le.string as lemma,
+                count(*) as freq,
+                sum(case when oct.zero then 1 else 0 end) as omitted
+            from
+                dral_text_occurence oce
+                join dral_text_language lae on (oce.language_id = lae.id)
+                join dral_text_lemma le on (oce.lemma_id = le.id)
+                join dral_text_language lat on (lat.name = %s)
+                left join dral_text_occurence oct on (
+                    oce.lemma_id = oct.lemma_id
+                    and oce.cell_col = oct.cell_col
+                    and oct.language_id = lat.id
+                    and oce.chapter_id = oct.chapter_id
+                    and oct.zero is true
+                )
+            where
+                oce.chapter_id = ANY(%s)
+                and lae.name = 'EN'
+                and oce.zero is false
+            group by le.string
+        '''
+
+        sort_key = None
         sort_by = self.config.get('sort', True)
         if sort_by == 'name':
             query += '''
                 order by lemma
             '''
         elif sort_by == 'omission':
-            query += '''
-                order by ratio_omitted desc
-            '''
+            def sort_key_omission(r):
+                return -(1.0 * r['omitted']) / r['freq']
+            sort_key = sort_key
         else:
             query += '''
-                order by sc.qt desc
+                order by freq desc, lemma
             '''
 
         chapter_ids = [self.chapter_slugs[slug]
                        for slug in self.config.get('chapter')]
         languages = [c.upper() for c in self.config.get('language')]
 
-        freq_min = self.config.get('freq-min', 0)
+        # freq_min = self.config.get('freq-min', 0)
 
         data = [
             (lg, get_rows_from_query(
                 query,
-                [chapter_ids, chapter_ids, freq_min, lg],
-                rounding=3
+                # [chapter_ids, chapter_ids, freq_min, lg],
+                [lg, chapter_ids],
+                sort_key=sort_key
             )[0:])
             for lg
             in languages
@@ -361,7 +388,7 @@ class Visualisation(object):
         return ret
 
 
-def get_rows_from_query(query, params, rounding=None):
+def get_rows_from_query(query, params, rounding=None, sort_key=None):
     from django.db import connection
     with connection.cursor() as cursor:
         cursor.execute(query, params)
@@ -372,6 +399,9 @@ def get_rows_from_query(query, params, rounding=None):
             for k, v in row.items():
                 if isinstance(v, float):
                     row[k] = round(v, 3)
+
+    if sort_key:
+        ret = sorted(ret, key=sort_key)
 
     return ret
 

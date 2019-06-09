@@ -201,6 +201,8 @@ h2 {
       // GN
       // http://vrl.cs.brown.edu/color
       // ["#4553c2", "#097b35", "#bb5579", "#405752", "#d11f0b", "#1d7bc3"]
+      // TODO: use sass variables for those so we can reuse them 
+      // across vizs
       &.PO .bar, &.POL .bar {
         fill: #bb5579;
       }
@@ -209,6 +211,9 @@ h2 {
       }
       &.LT .bar, &.LIT .bar {
         fill: #097b35;
+      }
+      &.FR .bar {
+        fill: #1d7bc3;
       }
 
       .axis-x {
@@ -286,6 +291,33 @@ new-chapter {
 .square:hover {
     stroke: grey;
 }
+
+.viz-proof {
+
+  .lang-row-EN {
+      background-color: #dce6f1;
+  }
+
+  tr.keyword {
+      font-size: larger;
+      font-weight: bold;
+      background-color: #dce6f1;
+  }
+
+  .st {
+      max-width: 6rem;
+      overflow-x: hidden;
+  }
+
+  .string-none {
+      background-color: #ffc000;
+  }
+
+  .string-unknown {
+      background-color: red;
+  }
+}
+
 
 // ------
 // Viz Settings overlay 
@@ -426,28 +458,3 @@ p.error-message {
 
 }
 
-.viz-proof {
-
-    .lang-row-EN {
-        background-color: #dce6f1;
-    }
-
-    tr.keyword {
-        font-size: larger;
-        font-weight: bold;
-        background-color: #dce6f1;
-    }
-
-    .st {
-        max-width: 6rem;
-        overflow-x: hidden;
-    }
-
-    .string-none {
-        background-color: #ffc000;
-    }
-
-    .string-unknown {
-        background-color: red;
-    }
-}

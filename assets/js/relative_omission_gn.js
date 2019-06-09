@@ -16,8 +16,12 @@ function get_lang_info(lang_code) {
       'POL': {
           'label': 'Polish'
       },
+      'default': {
+          'label': lang_code
+      }
   };
   var ret = lang_codes[lang_code];
+  if (!ret) ret = lang_codes['default'];
   return ret;
 }
 
@@ -105,16 +109,18 @@ function relative_omission() {
                 .attr('y', 0)
                 .attr('width', scale_x.bandwidth())
                 //.attr('height', d => dims.h - scale_y(d.ratio_omitted))
-                .attr('height', d => scale_y(d.ratio_omitted))
+                .attr('height', d => scale_y(d.omitted / d.freq))
         ;
 
+        // vertical "cursor" for the hovered bar
+        // and corresponding ones in the other languages
         bars.append('line')
             .classed('cursor', true)
             .attr('x1', 0)
             .attr('x2', 0)
             .attr('y1', 0)
             .attr('y2', scale_y(1.0))
-            .classed('show', false);
+            .classed('show', false)
         ;
 
         // title of the chart
@@ -147,13 +153,12 @@ function relative_omission() {
         // b) user couldn't select lemma without omissions (0-height bar)
         // See https://bl.ocks.org/mbostock/3902569
         svg.on(
-          'mousemove', function(a,b,c) {
+          'mousemove', function() {
               var xy = d3.mouse(this);
               
-              // TODO: better way to get the index from mouse coord
-              // var x0 = 0, x1 = $svg_group.parent().width();
-              // var idx = Math.floor(xm / (x1 - x0) * data.length);
-              var idx = (xy[0] - margins.left - scale_x.paddingOuter() * scale_x.step()) / scale_x.step();
+              var idx = (
+                xy[0] - margins.left - scale_x.paddingOuter() * scale_x.step()
+              ) / scale_x.step();
               idx = Math.floor(idx);
 
               if (data[idx]) {
@@ -168,8 +173,9 @@ function relative_omission() {
                   var datum = bar.datum();
 
                   datum.omitted_pc = (datum.ratio_omitted * 100.0).toFixed(1);
-                  datum.language_full = get_lang_info(datum.language).label;
+                  datum.language_full = get_lang_info(lang).label;
 
+                  // log(datum);
                   window.infobox_dict(datum);
 
                   var x0 = scale_x(datum.lemma);
@@ -187,7 +193,7 @@ function relative_omission() {
           }
         );
         svg.on(
-          'mouseleave', function(a,b,c) {
+          'mouseleave', function() {
             on_leave_bar();
           }
         );
