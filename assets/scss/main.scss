@@ -89,6 +89,8 @@ h2 {
   padding: 10px;
 }
 
+/* VISUALISATIONS */
+
 #visualisation {
   canvas {
     background: #e8e8e8;
@@ -98,28 +100,140 @@ h2 {
 }
 
 /* SVG */
-.bar,
-.bar rect {
-  fill: $primary-color;
-  stroke: white;
-  stroke-width: 1px;
+.relative-omission {
+  height: 80vh;
+  position: relative;
+  // width: 100%;
+  width: 10000px;
+
+  h3 {
+    color: $primary-color;
+    margin-bottom: 0;
+    position: fixed;
+  }
+
+  .chart {
+    border-top: 1px solid $primary-color;
+    // box-shadow: inset 0 0 0 2px white;
+    height: 20vh; // Dynamic height
+    margin-top: 35px;
+    width: 100%;
+  }
+
+  .bar,
+  .bar rect {
+    fill: $primary-color;
+    stroke: white;
+    stroke-width: 1px;
+  }
+
+  .bar text {
+    fill: #fff;
+    font: 10px sans-serif;
+  }
 }
 
-.bar text {
-  fill: #fff;
-  font: 10px sans-serif;
+.viz-introduction {
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.relative-omission-gn {
+  &.fit-width .chart {
+    width: 100%;
+  }
+
+  .chart-wrapper {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: 30vh;
+    // padding-bottom: 100%;
+    // vertical-align: top;
+    // overflow: hidden;
+
+    .chart {
+      // border-top: 1px solid $primary-color;
+      // box-shadow: inset 0 0 0 2px white;
+      //// height: 20vh; // Dynamic height
+      // margin-top: 35px;
+      // width: 100%;
+      // display: inline-block;
+      // position: absolute;
+      // top: 0;
+      // left: 0;
+      height: 100%;
+      display: block;
+      position: relative;
+      
+      .title text {
+        color: #222;
+        font-size: 0.8rem;
+        font-family: Verdana, Geneva, sans-serif;
+        font-weight: bold;
+      }
+
+      .cursor {
+        stroke: darkorange;
+        stroke-width: 1;
+        stroke-dasharray: 4 2;
+        visibility: hidden;
+        &.show{
+          visibility: visible;
+        }
+      }
+
+      .bar{
+        fill: $primary-color;
+        stroke: white;
+        //// stroke-width: 1px;
+        stroke-width: 0;
+
+        &.highlighted {
+          // TODO: remove that !important
+          // the language specific selectors take over it otherwise
+          fill: yellow !important;
+          stroke: orange;
+          stroke-width: 1;
+        }
+      }
+
+      // GN
+      // http://vrl.cs.brown.edu/color
+      // ["#4553c2", "#097b35", "#bb5579", "#405752", "#d11f0b", "#1d7bc3"]
+      // TODO: use sass variables for those so we can reuse them 
+      // across vizs
+      &.PO .bar, &.POL .bar {
+        fill: #bb5579;
+      }
+      &.RU .bar, &.RUS .bar {
+        fill: #4553c2;
+      }
+      &.LT .bar, &.LIT .bar {
+        fill: #097b35;
+      }
+      &.FR .bar {
+        fill: #1d7bc3;
+      }
+
+      .axis-x {
+        text {
+          text-anchor: start;
+          color: grey;
+        }
+      }
+    
+      .bar text {
+        fill: #fff;
+        font: 10px sans-serif;
+      }
+    }
+  
+  }
 }
 
 .calendar {
   height: 500px;
-  width: 100%;
-}
-
-.chart {
-  border-top: 1px solid $primary-color;
-  // box-shadow: inset 0 0 0 2px white;
-  height: 20vh; // Dynamic height
-  margin-top: 35px;
   width: 100%;
 }
 
@@ -146,30 +260,20 @@ new-chapter {
   stroke: white;
 }
 
-.svg-viz {
-  height: 80vh;
-  position: relative;
-  // width: 100%;
-  width: 10000px;
-
-  h3 {
-    color: $primary-color;
-    margin-bottom: 0;
-    position: fixed;
-  }
-}
 
 // GN: july 2018
 
 #infobox div {
     /* display: none; */
-    background-color: rgba(255,255,255,0.8);
-    border: 2px solid grey;
-    padding: 0.5em;
+    background-color: #111;
+    border: 1px solid black;
+    padding: 0.3em;
+    color: white;
     margin: 1rem;
     position: fixed;
     top: 0;
     left: 0;
+    font-size: 0.9rem;
 }
 
 .template {
@@ -188,7 +292,35 @@ new-chapter {
     stroke: grey;
 }
 
+.viz-proof {
+
+  .lang-row-EN {
+      background-color: #dce6f1;
+  }
+
+  tr.keyword {
+      font-size: larger;
+      font-weight: bold;
+      background-color: #dce6f1;
+  }
+
+  .st {
+      max-width: 6rem;
+      overflow-x: hidden;
+  }
+
+  .string-none {
+      background-color: #ffc000;
+  }
+
+  .string-unknown {
+      background-color: red;
+  }
+}
+
+
 // ------
+// Viz Settings overlay 
 
 .option-selected {
     background: #f0f0e0;
@@ -326,28 +458,3 @@ p.error-message {
 
 }
 
-.viz-proof {
-
-    .lang-row-EN {
-        background-color: #dce6f1;
-    }
-
-    tr.keyword {
-        font-size: larger;
-        font-weight: bold;
-        background-color: #dce6f1;
-    }
-
-    .st {
-        max-width: 6rem;
-        overflow-x: hidden;
-    }
-
-    .string-none {
-        background-color: #ffc000;
-    }
-
-    .string-unknown {
-        background-color: red;
-    }
-}

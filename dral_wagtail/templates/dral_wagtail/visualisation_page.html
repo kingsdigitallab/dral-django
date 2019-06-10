@@ -35,13 +35,15 @@
     {# D3Js Library - Link to ext file for now #}
     <script src="https://d3js.org/d3.v5.min.js"></script>
 
+    <script type="text/javascript" src="/static/js/relative_omission_gn.js"></script>
+
     {% block tooltip %}
 
       <script>
         window.info_box_vue = null;
 
         function infobox_dict(dict) {
-            console.log(dict);
+            // console.log(dict);
             Vue.set(window.info_box_vue, 'd', dict);
         }
         function infobox_dict_old(dict) {
@@ -146,7 +148,7 @@
                                     ret[avar.key] = values.join(',');
                                 }
                             });
-                            console.log(ret);
+                            // console.log(ret);
                             return ret;
                         }
                     }
@@ -178,6 +180,11 @@
                         data: {
                             d: {},
                         },
+                        filters: {
+                            percent: function(val, total) {
+                                return Math.round((val / total) * 1000) / 10;
+                            }
+                        }
                     });
                 });
             }

@@ -15,6 +15,7 @@ from collections import OrderedDict
 
 MAX_CELL_PER_ROW = 2000
 MAX_CELL_LENGTH = 200
+MAX_STTRING_LENGTH = 20
 
 
 class DRTEXTException(Exception):
@@ -315,6 +316,7 @@ import_sentences PATH_TO_CONTENT.XML
                 block, line_number
             )
 
+        # lemma record
         if not lemma:
             return self.warn('block doesn\'t have a keyword', line_number)
 
@@ -337,6 +339,13 @@ import_sentences PATH_TO_CONTENT.XML
             self.stats['lemmas.created'] += 1
             # self.lemmas_to_create.append(lemma_obj)
         lemma = lemma_obj
+
+        # forms as a list
+        forms_list = [
+            re.sub(r'[() ]', '', f).lower()
+            for f in forms.split(',')
+        ]
+        forms_list = sorted(forms_list, key=lambda f: -len(f))
 
         locations = lines.get('locations', None)
 
@@ -381,11 +390,11 @@ import_sentences PATH_TO_CONTENT.XML
                     context=v[0][:50] if is_ref_lang else '',
                 )
 
-                self.import_cell(occurence_data, lemma_forms)
+                self.import_cell(occurence_data, lemma_forms, forms_list)
 
-    def import_cell(self, occurence_data, lemma_forms):
+    def import_cell(self, occurence_data, lemma_forms, forms_list):
 
-        self._clean_occurrence_data(occurence_data)
+        self._clean_occurrence_data(occurence_data, forms_list)
 
         occurence = self.occurrences.get(
             '%s:%s:%s:%s' % (
@@ -411,39 +420,33 @@ import_sentences PATH_TO_CONTENT.XML
             occurence = Occurence(**occurence_data)
             self.occurences_to_create.append(occurence)
 
-    def _clean_occurrence_data(self, data):
+    def _clean_occurrence_data(self, data, forms_list):
         # todo: move this to the model
 
+        cell = data['cell']
+        v = cell.lower()
+
+        # categories
+        v0 = v
+        v = re.sub(r'\bzerr?o\b', '', v)
+        data['zero'] = v0 != v
+
         if data['language'].name == self.DRAL_REFERENCE_LANGUAGE:
-            forms = [
-                re.sub(r'[() ]', '', f).lower()
-                for f in data['lemma'].forms.split(',')
-            ]
-
-            cell = data['cell']
-
-            v = None
-            if cell != 'ZERO':
-                cell = cell.lower()
-                v = '??'
-                for form in sorted(forms, key=lambda f: -len(f)):
-                    if form in cell:
-                        v = form
+            if v and not data['zero']:
+                # string = first used form in the cell
+                form_found = None
+                for form in forms_list:
+                    if form in v:
+                        form_found = form
                         break
 
+                if form_found is None:
+                    v = '??'
+
                 if 0 and v == '??':
-                    print('?? ', cell, forms)
+                    print('?? ', cell, forms_list)
 
-                v = v[:20]
-
-            data['string'] = v
         else:
-            v = data['cell'].lower()
-
-            # categories
-            v0 = v
-            v = re.sub(r'\bzerr?o\b', '', v)
-            data['zero'] = v0 != v
             v0 = v
             v = re.sub(r'\b(replace|replacement)\b', '', v)
             data['replace'] = v0 != v
@@ -457,17 +460,18 @@ import_sentences PATH_TO_CONTENT.XML
             # remove parentheses
             v = re.sub(r'\s*\([^\)]*\)\s*', '', v)
 
-            # reduce double spaces
-            v = re.sub(r'\s+', ' ', v.strip())
+        # reduce double spaces
+        v = re.sub(r'\s+', ' ', v.strip())
 
-            if not v:
-                v = None
-            else:
-                v = v[:20]
-            if 0 and v and re.search(r'\W', v):
-                self.warn(v, 0)
+        if 0 and v and re.search(r'\W', v):
+            self.warn(v, 0)
 
-            data['string'] = v
+        if v:
+            v = v[:MAX_STTRING_LENGTH]
+        else:
+            v = None
+
+        data['string'] = v
 
     # ===============================================================
     # SENTENCES
