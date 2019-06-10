@@ -283,20 +283,15 @@ class Visualisation(object):
             'chapters': data_chapters
         }
 
-    def visualisation_relative_omission_gn(self):
-        ret = self.visualisation_relative_omission()
-        return ret
-
     def visualisation_relative_omission(self):
         '''
         For each unique (lemma, lg) pair we get:
             * the frequency (sc.qt)
             * the number of ommissions (zc.qt)
-                le.string as lemma, la.name as language, sc.qt as freq,
         '''
         query = r'''
             select
-                le.string as lemma, sc.qt as freq,
+                le.string as lemma, la.name as language, sc.qt as freq,
                 coalesce(zc.qt::float, 0.0) omitted,
                 coalesce(zc.qt::float, 0.0) / (sc.qt::float) as ratio_omitted
             from
@@ -326,6 +321,44 @@ class Visualisation(object):
             and la.name = %s
         '''
 
+        sort_by = self.config.get('sort', True)
+        if sort_by == 'name':
+            query += '''
+                order by lemma
+            '''
+        elif sort_by == 'omission':
+            query += '''
+                order by ratio_omitted desc
+            '''
+        else:
+            query += '''
+                order by sc.qt desc
+            '''
+
+        chapter_ids = [self.chapter_slugs[slug]
+                       for slug in self.config.get('chapter')]
+        languages = [c.upper() for c in self.config.get('language')]
+
+        freq_min = self.config.get('freq-min', 0)
+
+        data = [
+            (lg, get_rows_from_query(
+                query,
+                [chapter_ids, chapter_ids, freq_min, lg],
+                rounding=3
+            )[0:])
+            for lg
+            in languages
+        ]
+        self.context['vis_data'] = OrderedDict(data)
+
+    def visualisation_relative_omission_gn(self):
+        '''
+        For each unique (lemma, lg) pair we get:
+            * the frequency (sc.qt)
+            * the number of ommissions (zc.qt)
+                le.string as lemma, la.name as language, sc.qt as freq,
+        '''
         query = r'''
             select
                 le.string as lemma,
