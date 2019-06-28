@@ -20,6 +20,19 @@
     {% endif %}
 
     {% if error or not messages %}
+        {% if import_type == 'texts' %}
+            <p>
+                Use the form below to import text metadata from a spreadsheet.
+                Please upload a .ods file (you can save your file to .ods format using MS Excel or LibreOffice).
+            </p>
+            <p>
+                The first sheet should contain a table with the following headings
+                and one row per text.
+            </p>
+            <p>
+                Display code, Code, Edition Used, Date of production, Date of original publication, Authors, Language
+            </p>
+        {% endif %}
         {% if import_type == 'occurrences' %}
             <p>
                 Use the form below to import repetition strings from a spreadsheet.

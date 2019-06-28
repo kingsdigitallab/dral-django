@@ -93,6 +93,19 @@ def view_upload_sentences(request):
     return view_upload_sheet(request, import_handler, context)
 
 
+def view_upload_texts(request):
+    def import_handler(file_path):
+        importer = Command()
+        importer.import_texts_from_file(file_path)
+        return importer.get_messages()
+
+    context = {
+        'page': {'title': 'Import Text Metadata'},
+        'import_type': 'texts',
+    }
+    return view_upload_sheet(request, import_handler, context)
+
+
 def view_upload_sheet(request, import_handler, context):
 
     form = ImportSheetForm()

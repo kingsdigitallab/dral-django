@@ -12,6 +12,7 @@ from dral_text.models import (
     Lemma, Occurence, Sentence, SheetStyle, Chapter, Text
 )
 from collections import OrderedDict
+from django.utils.text import slugify
 
 MAX_CELL_PER_ROW = 2000
 MAX_CELL_LENGTH = 200
@@ -30,7 +31,7 @@ Usage: ACTION [OPTIONS]
 
 ACTIONS:
 
-import PATH_TO_CONTENT.XML
+import PATH_TO_FILE.ODS
     import occurrence data from a spreadsheet into the relational DB
     PATH_TO_CONTENT.XML: is a content.xml obtained by unzipping a .ods file
     The .ods file is a spreadsheet saved with LibreOffice Calc.
@@ -43,10 +44,13 @@ clean
 clear
     remove all the occurrence data from the database
 
-import_sentences PATH_TO_CONTENT.XML
-    import_sentences
+import_sentences PATH_TO_FILE.ODS
+    import sentences
 
-    ce52 is yellow
+import_texts PATH_TO_FILE.ODS
+    import text metadata
+
+    (ce52 is yellow)
     '''
 
     # =============================================================
@@ -73,6 +77,12 @@ import_sentences PATH_TO_CONTENT.XML
 
         self.import_sheets_from_file_arg(import_table_handler)
 
+    def action_import_texts(self):
+        def import_table_handler(table, root):
+            return self.import_table_texts(table, root)
+
+        self.import_sheets_from_file_arg(import_table_handler)
+
     # =============================================================
     # ACTIONS from other python modules
 
@@ -85,6 +95,12 @@ import_sentences PATH_TO_CONTENT.XML
     def import_sentences_from_file(self, file_path):
         def import_table_handler(table, root):
             return self.import_table_sentences(table, root)
+
+        self.import_sheets_from_file(file_path, import_table_handler)
+
+    def import_texts_from_file(self, file_path):
+        def import_table_handler(table, root):
+            return self.import_table_texts(table, root)
 
         self.import_sheets_from_file(file_path, import_table_handler)
 
@@ -472,6 +488,81 @@ import_sentences PATH_TO_CONTENT.XML
             v = None
 
         data['string'] = v
+
+    # ===============================================================
+    # TEXT METADATA
+
+    def import_table_texts(self, xml_table, xml_root):
+        table_name = xml_table.attrib['name'].rstrip('_').strip(' ')
+        skipped = ''
+        if (table_name.startswith('_')):
+            skipped = ' (skipped)'
+        self.msg('> Table "%s"%s' % (table_name, skipped))
+        if skipped:
+            return
+
+        imported_count = 0
+
+        def get_int_from_str(st, default=None):
+            ret = None
+            try:
+                ret = int(st)
+            except ValueError:
+                pass
+            return ret
+
+        values = [None] * MAX_CELL_PER_ROW
+        headings = []
+        for row_len in self.get_rows_from_xml_table(xml_table, values):
+            if row_len < 1:
+                continue
+            # normalise the row in a short list of strings
+            vals = [
+                (v[0] if v is not None else '').strip()
+                for v
+                in values[:row_len]
+            ]
+            #
+            if not headings:
+                # parse heading
+                headings = [slugify(v) for v in vals]
+                if 'code' not in headings:
+                    headings = []
+            else:
+                # parse a row with meta about a text
+                # convert the row to a dictionary
+                meta = {
+                    h: (vals[i] if i < len(vals) else '')
+                    for i, h
+                    in enumerate(headings)
+                }
+
+                # find the corresponding text record
+                text = None
+                if meta['code']:
+                    text = Text.get_or_create_from_code(meta['code'])
+
+                if text:
+                    # update the record
+                    text.pointer = meta['display-code']
+                    text.reference = meta['edition-used']
+                    text.original_publication_year = get_int_from_str(
+                        meta['date-of-original-publication'])
+                    text.production_year = get_int_from_str(
+                        meta['date-of-production'])
+                    text.authors = meta['authors']
+                    text.language = meta['language']
+                    text.internal_note = meta['note']
+
+                    self.msg(' Import meta for "{}"'.format(text.code))
+
+                    imported_count += 1
+
+                    text.save()
+
+        self.msg(' Imported {} rows'.format(imported_count))
+
+        # print(values[0], len(vals), row_len)
 
     # ===============================================================
     # SENTENCES
