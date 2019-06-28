@@ -6,16 +6,44 @@ from dral_text.models import Text, Chapter, Occurence, Sentence, Lemma,\
     SheetStyle
 
 
+def get_context():
+    context = {
+        'page': {'title': 'Remove data'},
+        'texts': Text.get_all(),
+        'chapters': Chapter.objects.all(),
+    }
+
+    return context
+
+
+def view_import(request):
+    '''landing page for all front-end data-related tasks'''
+    context = get_context()
+    context['page'] = {'title': 'Data management'}
+
+    # add statistics about sentences and strings to context
+    # broken down by texts and chapters
+    context['stats'] = []
+    for text in Text.get_all():
+        stats_text = [text.code]
+        for chapter in context['chapters']:
+            stats_text.append(
+                Occurence.objects.filter(
+                    text=text, chapter=chapter
+                ).count()
+            )
+            stats_text.append(
+                Sentence.objects.filter(
+                    text=text, chapter=chapter
+                ).count()
+            )
+
+        context['stats'].append(stats_text)
+
+    return render(request, 'dral_text/import.html', context)
+
+
 def view_clean_data(request):
-
-    def get_context():
-        context = {
-            'page': {'title': 'Data cleaning'},
-            'texts': Text.get_all(),
-            'chapters': Chapter.objects.all(),
-        }
-
-        return context
 
     context = get_context()
 

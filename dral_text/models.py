@@ -48,6 +48,9 @@ class Chapter(models.Model):
     name = models.CharField(max_length=60)
     display_order = models.IntegerField(default=0, blank=False, null=False)
 
+    class Meta:
+        ordering = ['display_order']
+
     def __str__(self):
         return '{}'.format(self.name)
 
@@ -172,7 +175,8 @@ class Sentence(models.Model):
     string = models.CharField(max_length=500)
     index = models.IntegerField()
     #
-    text = models.ForeignKey('Text', on_delete=models.PROTECT)
+    text = models.ForeignKey(
+        'Text', on_delete=models.PROTECT, related_name='sentences')
     chapter = models.ForeignKey(
         'Chapter',
         null=True,
@@ -237,12 +241,15 @@ class Text(models.Model):
 
     @classmethod
     def get_all(cls):
+        '''Returns all text instances as a list.
+        In alphabetical order of the code
+        But english is at the end
+        because it allows us to delete all other referring
+        records first.
+        '''
         ret = list(cls.objects.all())
 
-        # we return EN text at the end
-        # because it allows us to delete all other refering
-        # records first.
-        ret = sorted(ret, key=lambda t: t.code.lower() == 'en')
+        ret = sorted(ret, key=lambda t: (t.code.lower() == 'en', t.code))
 
         return ret
 

@@ -476,53 +476,9 @@ import_sentences PATH_TO_CONTENT.XML
     # ===============================================================
     # SENTENCES
 
-    def import_table_sentences_old(self):
-
-        self.msg('Delete all sentences')
-        Sentence.objects.all().delete()
-
-        while self.aargs:
-            ods_path = self.aargs.pop()
-            file_path = '/tmp/dral_sent_content.xml'
-            os.system('unzip -p %s content.xml > %s' % (ods_path, file_path))
-            content = self._read_file(file_path, encoding='utf-8')
-
-            content = re.sub(
-                r'(table|office|style|text|draw|fo):', '', content
-            )
-
-            root = ET.fromstring(content)
-
-            for table in root.findall(".//table"):
-                table_name = table.attrib['name']
-
-                match = re.match(
-                    '^(BENJY|QUENTIN|JASON|DILSEY)_([A-Z]{2,3})$',
-                    table_name
-                )
-                if not match:
-                    self.msg('WARNING: Skipped table %s' % table_name)
-                    continue
-                chapter, code = match.group(1), match.group(2)
-                self.msg(chapter, code)
-
-                if code == 'PL':
-                    code = 'POL'
-
-                text = Text.objects.filter(code__iexact=code).first()
-
-                if not text:
-                    self.msg(
-                        'WARNING: Skipped table %s (unrecognised language %s)'
-                        % (table_name, code)
-                    )
-                    continue
-
     def import_table_sentences(self, xml_table, xml_root):
         '''
-        Import the spreadsheet/table rows;
-        identify blocks of rows that belong to the same english lemma
-        extract and import the occurrence strings and metadata
+        (Re)Import the sentences from a spreadsheet;
         '''
         table_name = xml_table.attrib['name'].rstrip('_').strip(' ')
         skipped = ''
@@ -551,7 +507,8 @@ import_sentences PATH_TO_CONTENT.XML
         text = Text.get_or_create_from_code(matches[0][1])
 
         self.msg('Import all sentences')
-        values = [None for i in range(0, MAX_CELL_PER_ROW)]
+        # values = [None for i in range(0, MAX_CELL_PER_ROW)]
+        values = [None] * MAX_CELL_PER_ROW
 
         line = 0
         index = 0

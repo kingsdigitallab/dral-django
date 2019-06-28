@@ -79,6 +79,11 @@ nav {
           ackground: darken($primary-color, 20%);
         }
       }
+
+      // GN: increase space between items
+      &:not(:first-child) {
+          margin-left: 1rem;
+      }
     }
   }
 }
@@ -458,3 +463,20 @@ p.error-message {
 
 }
 
+// the data summary table in the Import section of the site
+.database-stats {
+  thead {
+    font-weight: bold;
+    tr:last-child td {
+      border-bottom: 1px solid black;
+    }
+  }
+  tbody {
+    tr:nth-child(even) {
+      background: #dce6f1;
+    }
+  }
+  td {
+    padding-right: 2rem;
+  }
+}
