@@ -11,12 +11,12 @@
                     ({{ block.freq }})
                 </td>
             </tr>
-            {% for lg in block.languages %}
-                <tr class="lang-row lang-row-{{lg.name}}">
-                    <td class="lang">{{lg.name}}</td>
-                    <td class="lang">{% if lg.omissions %}Z {{lg.omissions}}{% endif %}</td>
-                    <td class="lang {% if lg.unknowns %}string-unknown{% endif %}">{% if lg.unknowns %}? {{lg.unknowns}}{% endif %}</td>
-                    {% for string in lg.strings %}
+            {% for row in block.texts %}
+                <tr class="lang-row lang-row-{{row.name}}">
+                    <td class="lang">{{row.name}}</td>
+                    <td class="lang">{% if row.omissions %}Z {{row.omissions}}{% endif %}</td>
+                    <td class="lang {% if row.unknowns %}string-unknown{% endif %}">{% if row.unknowns %}? {{row.unknowns}}{% endif %}</td>
+                    {% for string in row.strings %}
                         <td class="st {% if string.string is None %}string-none{% endif %} {% if string.string.0 == '?' %}string-unknown{% endif %}">{{ string.string|default:"ZERO" }}{% if string.context and string.context|length < string.cell|length %} [context truncated]{% endif %}</td>
                     {% endfor %}
                 </tr>

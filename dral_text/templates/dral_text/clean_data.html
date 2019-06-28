@@ -21,11 +21,11 @@
         you would like to completely remove from the database.
     </p>
 
-    <h3>Languages</h3>
-    {% for lang in languages %}
+    <h3>Texts</h3>
+    {% for text in texts %}
         <label>
-            <input type="checkbox" name="lg-{{ lang.pk }}" value="1" >
-            {{ lang.name }}
+            <input type="checkbox" name="text-{{ text.pk }}" value="1" >
+            {{ text.code }}
         </label>
     {% endfor %}
 

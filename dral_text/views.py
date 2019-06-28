@@ -2,7 +2,7 @@
 from django.shortcuts import render
 from .forms import ImportSheetForm
 from .management.commands.drtext import Command
-from dral_text.models import Language, Chapter, Occurence, Sentence, Lemma,\
+from dral_text.models import Text, Chapter, Occurence, Sentence, Lemma,\
     SheetStyle
 
 
@@ -11,7 +11,7 @@ def view_clean_data(request):
     def get_context():
         context = {
             'page': {'title': 'Data cleaning'},
-            'languages': Language.objects.all(),
+            'texts': Text.objects.all(),
             'chapters': Chapter.objects.all(),
         }
         return context
@@ -19,18 +19,18 @@ def view_clean_data(request):
     context = get_context()
 
     if request.method == 'POST':
-        for l in context['languages']:
-            if request.POST.get('lg-{}'.format(l.pk), None):
-                Occurence.objects.filter(language=l).delete()
-                Lemma.objects.filter(language=l).delete()
-                Sentence.objects.filter(language=l).delete()
-                l.delete()
-        for c in context['chapters']:
-            if request.POST.get('ch-{}'.format(c.pk), None):
-                Occurence.objects.filter(chapter=c).delete()
-                Sentence.objects.filter(chapter=c).delete()
-                SheetStyle.objects.filter(chapter=c).delete()
-                c.delete()
+        for text in context['texts']:
+            if request.POST.get('text-{}'.format(text.pk), None):
+                Occurence.objects.filter(text=text).delete()
+                Lemma.objects.filter(text=text).delete()
+                Sentence.objects.filter(text=text).delete()
+                text.delete()
+        for chapter in context['chapters']:
+            if request.POST.get('ch-{}'.format(chapter.pk), None):
+                Occurence.objects.filter(chapter=chapter).delete()
+                Sentence.objects.filter(chapter=chapter).delete()
+                SheetStyle.objects.filter(chapter=chapter).delete()
+                chapter.delete()
 
         context = get_context()
 

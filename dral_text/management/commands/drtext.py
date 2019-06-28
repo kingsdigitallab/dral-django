@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 import re
 import os
 from dral_text.models import (
-    Language, Lemma, Occurence, Sentence, SheetStyle, Chapter
+    Lemma, Occurence, Sentence, SheetStyle, Chapter, Text
 )
 from collections import OrderedDict
 
@@ -117,7 +117,7 @@ import_sentences PATH_TO_CONTENT.XML
                 obj.chapter.slug,
                 obj.lemma.string,
                 obj.lemma.forms,
-                obj.language_id,
+                obj.text_id,
                 obj.cell_col
             ): obj
             for obj
@@ -333,7 +333,7 @@ import_sentences PATH_TO_CONTENT.XML
             lemma_obj = Lemma(
                 string=lemma[:20],
                 forms=forms,
-                language=self.languages[self.DRAL_REFERENCE_LANGUAGE],
+                text=self.text[self.DRAL_REFERENCE_LANGUAGE],
             )
             lemma_obj.save()
             self.stats['lemmas.created'] += 1
@@ -350,18 +350,18 @@ import_sentences PATH_TO_CONTENT.XML
         locations = lines.get('locations', None)
 
         line_offset = 0
-        for lg, line in lines.items():
+        for code, line in lines.items():
             line_offset += 0
-            if lg is 'locations':
+            if code is 'locations':
                 continue
             # todo: remove this once the error has been corrected in file
             # PL => POL
-            lg = lg.strip().upper()
-            if lg == 'PL':
-                lg = 'POL'
+            code = code.strip().upper()
+            if code == 'PL':
+                code = 'POL'
 
-            if lg not in self.languages:
-                self.languages[lg] = Language.get_or_create_from_name(lg)
+            if code not in self.languages:
+                self.languages[code] = Text.get_or_create_from_code(code)
 
             styles = {}
 
@@ -372,14 +372,14 @@ import_sentences PATH_TO_CONTENT.XML
                 if v[1] not in styles:
                     styles[v[1]] = len(styles.keys())
 
-                is_ref_lang = (lg == self.DRAL_REFERENCE_LANGUAGE)
+                is_ref_lang = (code == self.DRAL_REFERENCE_LANGUAGE)
 
                 occurence_data = dict(
                     cell_line=line_number + line_offset,
                     cell_col=i,
                     cell=v[0][:MAX_CELL_LENGTH],
                     cell_style=v[1] or '',
-                    language=self.languages[lg],
+                    language=self.texts[code],
                     chapter=self.chapter,
                     lemma=lemma,
                     lemma_group=styles[v[1]],
@@ -511,9 +511,9 @@ import_sentences PATH_TO_CONTENT.XML
                 if language_name == 'PL':
                     language_name = 'POL'
 
-                language = Language.objects.filter(name=language_name).first()
+                text = Text.objects.filter(name=language_name).first()
 
-                if not language:
+                if not text:
                     self.msg(
                         'WARNING: Skipped table %s (unrecognised language %s)'
                         % (table_name, language_name)
@@ -550,7 +550,7 @@ import_sentences PATH_TO_CONTENT.XML
             return
 
         chapter = Chapter.update_or_create_from_table_name(matches[0][0])
-        language = Language.get_or_create_from_name(matches[0][1])
+        text = Text.get_or_create_from_code(matches[0][1])
 
         self.msg('Import all sentences')
         values = [None for i in range(0, MAX_CELL_PER_ROW)]
@@ -585,7 +585,7 @@ import_sentences PATH_TO_CONTENT.XML
                 continue
 
             Sentence.objects.update_or_create(
-                language=language,
+                text=text,
                 chapter=chapter,
                 index=index,
                 defaults=dict(
@@ -599,7 +599,7 @@ import_sentences PATH_TO_CONTENT.XML
 
         self.msg('Delete left-over sentences')
         Sentence.objects.filter(
-            chapter=chapter, language=language, index__gt=index
+            chapter=chapter, text=text, index__gt=index
         ).delete()
 
     # ===============================================================
@@ -726,8 +726,8 @@ import_sentences PATH_TO_CONTENT.XML
     def _pre_action(self):
         from django.conf import settings
         self.DRAL_REFERENCE_LANGUAGE = settings.DRAL_REFERENCE_LANGUAGE
-        Language.add_default_languages()
-        self.languages = Language.get_languages()
+        Text.add_default_texts()
+        self.texts = Text.get_texts()
         self.messages = {
             'error': '',
             'messages': []

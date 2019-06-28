@@ -2,27 +2,7 @@
 "use strict";
 
 function log() {
-  window.console.log.apply(null, arguments)
-}
-
-function get_lang_info(lang_code) {
-  var lang_codes = {
-      'LT': {
-          'label': 'Lituanian'
-      },
-      'RU': {
-          'label': 'Russian'
-      },
-      'POL': {
-          'label': 'Polish'
-      },
-      'default': {
-          'label': lang_code
-      }
-  };
-  var ret = lang_codes[lang_code];
-  if (!ret) ret = lang_codes['default'];
-  return ret;
+  window.console.log.apply(null, arguments);
 }
 
 function relative_omission() {
@@ -50,13 +30,13 @@ function relative_omission() {
     dims.cw = dims.w + margins.left + margins.right;
 
     // treat each dataset, one by one, one for each translatation
-    $.each(window.vis_data, (lang, data) => {
-        var lang_info = get_lang_info(lang);
+    $.each(window.vis_data, (text_code, data) => {
+        var text_info = window.get_text_info(text_code);
 
         // render the template and add it to viz div wrapper
         $charts_wrapper.append(window.apply_template(
             'chart-wrapper-template',
-            {'language': lang}
+            {'text_code': text_code}
         ));
         var chart_wrapper = d3.select($charts_wrapper.children(':last')[0]);
 
@@ -68,7 +48,7 @@ function relative_omission() {
         ;
         var chart_group = svg.append('g')
           .attr('transform', 'translate('+margins.left+', '+margins.top+')');
-        
+
         // scales & axes
         // var scale_y = d3.scaleLinear().domain([0, 1.0]).range([dims.h, 0]);
         var scale_y = d3.scaleLinear().domain([0, 1.0]).range([0, dims.h]);
@@ -124,7 +104,7 @@ function relative_omission() {
         // title of the chart
         svg.append('g').classed('title', true)
             .append('text')
-            .text(lang_info.label)
+            .text(text_info.label)
             .attr('x', 0)
             .attr('y', '1em')
         ;
@@ -153,7 +133,7 @@ function relative_omission() {
         svg.on(
           'mousemove', function() {
               var xy = d3.mouse(this);
-              
+
               var idx = (
                 xy[0] - margins.left - scale_x.paddingOuter() * scale_x.step()
               ) / scale_x.step();
@@ -170,8 +150,7 @@ function relative_omission() {
 
                   var datum = bar.datum();
 
-                  datum.omitted_pc = (datum.ratio_omitted * 100.0).toFixed(1);
-                  datum.language_full = get_lang_info(lang).label;
+                  datum.text_label = window.get_text_info(text_code).label;
 
                   // log(datum);
                   window.infobox_dict(datum);
@@ -195,7 +174,7 @@ function relative_omission() {
             on_leave_bar();
           }
         );
-        
+
     });
 
 

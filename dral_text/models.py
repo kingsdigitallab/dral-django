@@ -4,13 +4,13 @@ import re
 '''
 lemma
     string
-    language
+    text
 
 occurrence
     word
     context
     sentence_index
-    language_id
+    text_id
     lemma_group=color
     lemma_id
 
@@ -18,14 +18,14 @@ sentence
     index
     string
 
-language
+text
     name
 
 OR
 
 || lemma
     || sentence
-        || language
+        || text
             word
 '''
 from django.utils.text import slugify
@@ -37,7 +37,7 @@ class Lemma(models.Model):
     '''Comma separated list of forms'''
     forms = models.CharField(max_length=200, blank=True)
     '''This will be EN'''
-    language = models.ForeignKey('Language', on_delete=models.PROTECT)
+    text = models.ForeignKey('Text', on_delete=models.PROTECT)
 
     class Meta:
         unique_together = [['string', 'forms']]
@@ -124,8 +124,8 @@ class Occurence(models.Model):
         on_delete=models.PROTECT
     )
 
-    # language of the word
-    language = models.ForeignKey('Language', on_delete=models.PROTECT)
+    # text of the word
+    text = models.ForeignKey('Text', on_delete=models.PROTECT)
 
     # DERIVED/INTERPRETED FROM THE ABOVE FIELDS
 
@@ -150,7 +150,7 @@ class Occurence(models.Model):
         pass
 
     class Meta:
-        unique_together = [['chapter', 'lemma', 'cell_col', 'language']]
+        unique_together = [['chapter', 'lemma', 'cell_col', 'text']]
 
 
 class SheetStyle(models.Model):
@@ -172,7 +172,7 @@ class Sentence(models.Model):
     string = models.CharField(max_length=500)
     index = models.IntegerField()
     #
-    language = models.ForeignKey('Language', on_delete=models.PROTECT)
+    text = models.ForeignKey('Text', on_delete=models.PROTECT)
     chapter = models.ForeignKey(
         'Chapter',
         null=True,
@@ -186,31 +186,63 @@ class Sentence(models.Model):
         indexes = [
             models.Index(fields=['index']),
             models.Index(fields=['chapter']),
-            models.Index(fields=['language']),
+            models.Index(fields=['text']),
         ]
 
 
-class Language(models.Model):
-    slug = models.SlugField(max_length=20, null=True)
-    name = models.CharField(max_length=20, unique=True)
+class Text(models.Model):
+    # e.g. RU2
+    code = models.SlugField(max_length=20, null=False, unique=True)
+    # e.g. RU2001
+    pointer = models.CharField(max_length=20, null=True, blank=True)
+    # Faulkner, W. (1990) The Sound and the Fury. New York: Vintage Books.
+    reference = models.CharField(max_length=300, null=True, blank=True)
+    original_publication_date = models.DateField(null=True, blank=True)
+    production_date = models.DateField(null=True, blank=True)
+    # comma separated values: surname, initials
+    authors = models.CharField(max_length=200, null=True, blank=True)
+    # Russian
+    language = models.CharField(max_length=20, null=True, blank=True)
+    public_note = models.TextField(null=True, blank=True)
+    internal_note = models.TextField(null=True, blank=True)
+    is_public = models.BooleanField(null=False, default=False)
 
     @classmethod
-    def add_default_languages(cls):
-        for name in ['EN', 'LT', 'POL', 'RU']:
-            cls.objects.get_or_create(name=name)
+    def add_default_texts(cls):
+        # for code in ['en', 'lt', 'pol', 'ru']:
+        for code in ['en']:
+            cls.objects.get_or_create(code=code)
+
+    def __str__(self):
+        return self.reference or self.get_label()
 
     @classmethod
-    def get_languages(cls):
-        return {o.name: o for o in cls.objects.all()}
+    def get_texts(cls):
+        return {o.code: o for o in cls.objects.all()}
+
+    def get_label(self):
+        ret = None
+
+        if self.language:
+            ret = self.language
+            if self.original_publication_date:
+                ret += ' {}'.format(self.original_publication_date)
+        if not ret:
+            if self.pointer:
+                ret = self.pointer
+        if not ret:
+            ret = self.code.upper()
+
+        return ret
 
     @classmethod
-    def get_or_create_from_name(cls, name):
-        slug = slugify(name)
+    def get_or_create_from_code(cls, code):
+        slug = slugify(code)
         ret, _ = cls.objects.get_or_create(
-            slug=slug,
-            defaults={
-                'name': name
-            }
+            code=slug,
+            # defaults={
+            #     'name': name
+            # }
         )
 
         return ret

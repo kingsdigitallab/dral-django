@@ -39,7 +39,25 @@
 
     {% block tooltip %}
 
-      <script>
+      <script  type="text/javascript">
+        window.text_infos = {{ text_infos|json }};
+
+        function get_text_info(text_code) {
+            var ret = {
+                'code': text_code,
+                'language': text_code,
+                'reference': text_code,
+                'label': text_code,
+                'pointer': text_code,
+            };
+            var text = window.text_infos[text_code];
+            if (text) {
+                Object.keys(ret).forEach(function (k) {
+                    ret[k] = text[k] || ret[k];
+                });
+            }
+            return ret;
+        }
         window.info_box_vue = null;
 
         function infobox_dict(dict) {

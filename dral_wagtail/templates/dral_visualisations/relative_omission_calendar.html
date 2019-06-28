@@ -10,11 +10,12 @@ ratio_omitted: 0
 
 {% verbatim %}
     <div id="infobox">
-        <template v-if="d.language">
+        <template v-if="d.lemma">
             <div>
-              Repeteme: {{ d.lemma }};
-              Frequency (EN): {{ d.freq }};
-              Omissions ({{ d.language }}): {{ d.omitted }} ({{ d.omitted_pc }} %);
+              Repeteme "{{ d.lemma }}" 
+              occurs {{ d.freq }} times in English 
+              and is omitted {{ d.omitted }} times ({{ d.omitted | percent(d.freq) }} %)
+              in {{ d.text_label }}
             </div>
         </template>
     </div>
@@ -23,8 +24,8 @@ ratio_omitted: 0
   </div>
 
   <div class="template viz-calendar">
-      <h3>{{language}}</h3>
-      <svg class="calendar {{language}}" data-language="{{language}}">
+      <h3>{{text_code}}</h3>
+      <svg class="calendar {{text_code}}" data-code="{{text_code}}">
         <g></g>
         <!--   rect class="overlay" width="100%" height="100%"></rect -->
       </svg>
@@ -39,11 +40,11 @@ ratio_omitted: 0
 
         $viz = $('.svg-viz');
 
-        $.each(window.vis_data, function(lang, data) {
+        $.each(window.vis_data, function(text_code, data) {
             // console.log(this);
             $viz.append(apply_template(
                 'viz-calendar',
-                {'language': lang}
+                {'text_code': text_code}
             ));
             var $svg_group = $viz.find('g:last');
             var $svg = $svg_group.parent();
@@ -99,9 +100,11 @@ ratio_omitted: 0
         // See https://bl.ocks.org/mbostock/3902569
         d3.selectAll('rect').on('mouseenter', function() {
             // TODO: better way to get the index from mouse coord
-            var square = d3.select(this)
-            var d = window.vis_data[square.attr('data-lng')][square.attr('data-idx')];
-            d['omitted_pc'] = (d['ratio_omitted'] * 100.0).toFixed(1);
+            var $square = $(this);
+            var code = $square.parents('svg').data('code');
+            var d = window.vis_data[code][$square.data('idx')];
+            // d['omitted_pc'] = (d['ratio_omitted'] * 100.0).toFixed(1);
+            d.text_label = window.get_text_info(code).language;
             infobox_dict(d);
         }).on('mouseout',
             function() {

@@ -320,4 +320,4 @@ WAGTAILSEARCH_BACKENDS = {
 # -----------------------------------------------------------------------------
 
 # code of the language of the original work
-DRAL_REFERENCE_LANGUAGE = 'EN'
+DRAL_REFERENCE_LANGUAGE = 'en'
