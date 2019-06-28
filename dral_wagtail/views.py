@@ -3,6 +3,7 @@ from collections import OrderedDict
 from dral_wagtail.api_vars import API_Vars
 from dral_text.models import Chapter, Text
 from django.conf import settings
+from django.template.defaultfilters import slugify
 
 
 class Visualisation(object):
@@ -353,7 +354,7 @@ class Visualisation(object):
 
         chapter_ids = [self.chapter_slugs[slug]
                        for slug in self.config.get('chapter')]
-        texts = [c.upper() for c in self.config.get('text')]
+        text_codes = [slugify(c) for c in self.config.get('text')]
 
         freq_min = self.config.get('freq-min', 0)
 
@@ -364,7 +365,7 @@ class Visualisation(object):
                 rounding=3
             )[0:])
             for code
-            in texts
+            in text_codes
         ]
         self.context['vis_data'] = OrderedDict(data)
 
@@ -394,7 +395,7 @@ class Visualisation(object):
                 )
             where
                 oce.chapter_id = ANY(%s)
-                and tee.code = 'EN'
+                and tee.code = 'en'
                 and oce.zero is false
             group by le.string
         '''
@@ -416,7 +417,7 @@ class Visualisation(object):
 
         chapter_ids = [self.chapter_slugs[slug]
                        for slug in self.config.get('chapter')]
-        text_codes = [c.upper() for c in self.config.get('text')]
+        text_codes = [slugify(c) for c in self.config.get('text')]
 
         # freq_min = self.config.get('freq-min', 0)
 

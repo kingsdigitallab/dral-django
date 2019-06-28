@@ -4,6 +4,9 @@ from dral_text.models import Text
 
 @admin.register(Text)
 class TextAdmin(admin.ModelAdmin):
-    list_display = ('id', 'is_public', 'code', 'pointer',
-                    'original_publication_date')
-    list_display_links = list_display
+    list_display = ('id', 'code', 'is_public', 'pointer',
+                    'language',
+                    'original_publication_year')
+    list_editable = ('is_public', 'pointer', 'language',
+                     'original_publication_year')
+    list_display_links = ('id', 'code')

@@ -263,7 +263,7 @@ import_sentences PATH_TO_CONTENT.XML
                 lines[line[3][0]] = line[4:]
             elif line[4][0]:
                 # string occurrences in English
-                lines[self.DRAL_REFERENCE_LANGUAGE] = line[4:]
+                lines[self.DRAL_REFERENCE_CODE] = line[4:]
 
         # normalise the forms
         forms = re.sub(r'^\((.*)\)$', r'\1', forms)
@@ -333,7 +333,7 @@ import_sentences PATH_TO_CONTENT.XML
             lemma_obj = Lemma(
                 string=lemma[:20],
                 forms=forms,
-                text=self.text[self.DRAL_REFERENCE_LANGUAGE],
+                text=self.texts[self.DRAL_REFERENCE_CODE],
             )
             lemma_obj.save()
             self.stats['lemmas.created'] += 1
@@ -360,8 +360,8 @@ import_sentences PATH_TO_CONTENT.XML
             if code == 'PL':
                 code = 'POL'
 
-            if code not in self.languages:
-                self.languages[code] = Text.get_or_create_from_code(code)
+            if code not in self.texts:
+                self.texts[code] = Text.get_or_create_from_code(code)
 
             styles = {}
 
@@ -372,14 +372,14 @@ import_sentences PATH_TO_CONTENT.XML
                 if v[1] not in styles:
                     styles[v[1]] = len(styles.keys())
 
-                is_ref_lang = (code == self.DRAL_REFERENCE_LANGUAGE)
+                is_ref_lang = (code == self.DRAL_REFERENCE_CODE)
 
                 occurence_data = dict(
                     cell_line=line_number + line_offset,
                     cell_col=i,
                     cell=v[0][:MAX_CELL_LENGTH],
                     cell_style=v[1] or '',
-                    language=self.texts[code],
+                    text=self.texts[code],
                     chapter=self.chapter,
                     lemma=lemma,
                     lemma_group=styles[v[1]],
@@ -400,7 +400,7 @@ import_sentences PATH_TO_CONTENT.XML
             '%s:%s:%s:%s' % (
                 occurence_data['chapter'].slug,
                 lemma_forms,
-                occurence_data['language'].id,
+                occurence_data['text'].id,
                 occurence_data['cell_col']
             ),
             None
@@ -431,7 +431,7 @@ import_sentences PATH_TO_CONTENT.XML
         v = re.sub(r'\bzerr?o\b', '', v)
         data['zero'] = v0 != v
 
-        if data['language'].name == self.DRAL_REFERENCE_LANGUAGE:
+        if data['text'].code.lower() == self.DRAL_REFERENCE_CODE.lower():
             if v and not data['zero']:
                 # string = first used form in the cell
                 form_found = None
@@ -481,8 +481,6 @@ import_sentences PATH_TO_CONTENT.XML
         self.msg('Delete all sentences')
         Sentence.objects.all().delete()
 
-        self.languages = self.languages
-
         while self.aargs:
             ods_path = self.aargs.pop()
             file_path = '/tmp/dral_sent_content.xml'
@@ -505,18 +503,18 @@ import_sentences PATH_TO_CONTENT.XML
                 if not match:
                     self.msg('WARNING: Skipped table %s' % table_name)
                     continue
-                chapter, language_name = match.group(1), match.group(2)
-                self.msg(chapter, language_name)
+                chapter, code = match.group(1), match.group(2)
+                self.msg(chapter, code)
 
-                if language_name == 'PL':
-                    language_name = 'POL'
+                if code == 'PL':
+                    code = 'POL'
 
-                text = Text.objects.filter(name=language_name).first()
+                text = Text.objects.filter(code__iexact=code).first()
 
                 if not text:
                     self.msg(
                         'WARNING: Skipped table %s (unrecognised language %s)'
-                        % (table_name, language_name)
+                        % (table_name, code)
                     )
                     continue
 
@@ -651,7 +649,7 @@ import_sentences PATH_TO_CONTENT.XML
         # todo: call it during import
         c = 0
         for occurence in Occurence.objects.filter(
-            language__name=self.DRAL_REFERENCE_LANGUAGE
+            text__code=self.DRAL_REFERENCE_CODE
         ).select_related('lemma'):
             lemmas = occurence.lemma.string.lower()
             lemmas = lemmas.replace('*', '').split('/')
@@ -686,7 +684,7 @@ import_sentences PATH_TO_CONTENT.XML
                 exit()
 
         for occurence in Occurence.objects.exclude(
-                language__name=self.DRAL_REFERENCE_LANGUAGE):
+                text__CODE=self.DRAL_REFERENCE_CODE):
             v = occurence.cell.lower()
 
             # categories
@@ -725,7 +723,7 @@ import_sentences PATH_TO_CONTENT.XML
 
     def _pre_action(self):
         from django.conf import settings
-        self.DRAL_REFERENCE_LANGUAGE = settings.DRAL_REFERENCE_LANGUAGE
+        self.DRAL_REFERENCE_CODE = settings.DRAL_REFERENCE_LANGUAGE
         Text.add_default_texts()
         self.texts = Text.get_texts()
         self.messages = {

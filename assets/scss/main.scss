@@ -165,7 +165,7 @@ h2 {
       height: 100%;
       display: block;
       position: relative;
-      
+
       .title text {
         color: #222;
         font-size: 0.8rem;
@@ -201,18 +201,18 @@ h2 {
       // GN
       // http://vrl.cs.brown.edu/color
       // ["#4553c2", "#097b35", "#bb5579", "#405752", "#d11f0b", "#1d7bc3"]
-      // TODO: use sass variables for those so we can reuse them 
+      // TODO: use sass variables for those so we can reuse them
       // across vizs
-      &.PO .bar, &.POL .bar {
+      &.po .bar, &.pol .bar {
         fill: #bb5579;
       }
-      &.RU .bar, &.RUS .bar {
+      &.ru .bar, &.rus .bar {
         fill: #4553c2;
       }
-      &.LT .bar, &.LIT .bar {
+      &.lt .bar, &.lit .bar {
         fill: #097b35;
       }
-      &.FR .bar {
+      &.fr .bar {
         fill: #1d7bc3;
       }
 
@@ -222,13 +222,13 @@ h2 {
           color: grey;
         }
       }
-    
+
       .bar text {
         fill: #fff;
         font: 10px sans-serif;
       }
     }
-  
+
   }
 }
 
@@ -320,7 +320,7 @@ new-chapter {
 
 
 // ------
-// Viz Settings overlay 
+// Viz Settings overlay
 
 .option-selected {
     background: #f0f0e0;

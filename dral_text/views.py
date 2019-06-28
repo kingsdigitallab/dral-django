@@ -11,9 +11,10 @@ def view_clean_data(request):
     def get_context():
         context = {
             'page': {'title': 'Data cleaning'},
-            'texts': Text.objects.all(),
+            'texts': Text.get_all(),
             'chapters': Chapter.objects.all(),
         }
+
         return context
 
     context = get_context()

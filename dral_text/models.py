@@ -197,8 +197,8 @@ class Text(models.Model):
     pointer = models.CharField(max_length=20, null=True, blank=True)
     # Faulkner, W. (1990) The Sound and the Fury. New York: Vintage Books.
     reference = models.CharField(max_length=300, null=True, blank=True)
-    original_publication_date = models.DateField(null=True, blank=True)
-    production_date = models.DateField(null=True, blank=True)
+    original_publication_year = models.IntegerField(null=True, blank=True)
+    production_year = models.IntegerField(null=True, blank=True)
     # comma separated values: surname, initials
     authors = models.CharField(max_length=200, null=True, blank=True)
     # Russian
@@ -225,13 +225,24 @@ class Text(models.Model):
 
         if self.language:
             ret = self.language
-            if self.original_publication_date:
-                ret += ' {}'.format(self.original_publication_date)
+            if self.original_publication_year:
+                ret += ' ({})'.format(self.original_publication_year)
         if not ret:
             if self.pointer:
                 ret = self.pointer
         if not ret:
             ret = self.code.upper()
+
+        return ret
+
+    @classmethod
+    def get_all(cls):
+        ret = list(cls.objects.all())
+
+        # we return EN text at the end
+        # because it allows us to delete all other refering
+        # records first.
+        ret = sorted(ret, key=lambda t: t.code.lower() == 'en')
 
         return ret
 
