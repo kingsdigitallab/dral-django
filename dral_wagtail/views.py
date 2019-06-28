@@ -164,7 +164,7 @@ class Visualisation(object):
 
         lemma = self.config.get('lemma', 'DOORS')
         chapters = self.config.get('chapter')
-        text_codes = [c.upper() for c in self.config.get('text')]
+        _, text_codes = self.get_chap_text_from_config()
 
         data = OrderedDict()
 
@@ -209,7 +209,8 @@ class Visualisation(object):
     def visualisation_proof_read(self):
         lemma = self.config.get('lemma', 'DOORS')
         chapters = self.config.get('chapter')
-        codes = [c.upper() for c in self.config.get('text')]
+
+        _, text_codes = self.get_chap_text_from_config()
 
         sort_by = self.config.get('sort', True)
 #         if sort_by == 'name':
@@ -229,7 +230,7 @@ class Visualisation(object):
 
             occurrences = Occurence.objects.filter(
                 chapter__slug=chapter,
-                text__code__in=['EN'] + codes,
+                text__code__in=['en'] + text_codes,
             ).select_related(
                 'lemma', 'text'
             )
@@ -352,9 +353,7 @@ class Visualisation(object):
                 order by sc.qt desc
             '''
 
-        chapter_ids = [self.chapter_slugs[slug]
-                       for slug in self.config.get('chapter')]
-        text_codes = [slugify(c) for c in self.config.get('text')]
+        chapter_ids, text_codes = self.get_chap_text_from_config()
 
         freq_min = self.config.get('freq-min', 0)
 
@@ -415,9 +414,7 @@ class Visualisation(object):
                 order by freq desc, lemma
             '''
 
-        chapter_ids = [self.chapter_slugs[slug]
-                       for slug in self.config.get('chapter')]
-        text_codes = [slugify(c) for c in self.config.get('text')]
+        chapter_ids, text_codes = self.get_chap_text_from_config()
 
         # freq_min = self.config.get('freq-min', 0)
 
@@ -436,6 +433,13 @@ class Visualisation(object):
     def visualisation_relative_omission_calendar(self):
         ret = self.visualisation_relative_omission()
         return ret
+
+    def get_chap_text_from_config(self):
+        chapter_ids = [self.chapter_slugs[slug]
+                       for slug in self.config.get('chapter')]
+        text_codes = [slugify(c) for c in self.config.get('text')]
+
+        return chapter_ids, text_codes
 
 
 def get_rows_from_query(query, params, rounding=None, sort_key=None):
