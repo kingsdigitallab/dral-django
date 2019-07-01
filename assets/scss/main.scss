@@ -153,8 +153,10 @@ h2 {
     position: relative;
     width: 100%;
     height: 30vh;
+
     // padding-bottom: 100%;
     // vertical-align: top;
+
     // overflow: hidden;
 
     .chart {
@@ -162,7 +164,9 @@ h2 {
       // box-shadow: inset 0 0 0 2px white;
       //// height: 20vh; // Dynamic height
       // margin-top: 35px;
+
       // width: 100%;
+
       // display: inline-block;
       // position: absolute;
       // top: 0;
@@ -225,6 +229,9 @@ h2 {
         text {
           text-anchor: start;
           color: grey;
+        }
+        &.hidden .tick {
+            visibility: hidden;
         }
       }
 

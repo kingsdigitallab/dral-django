@@ -1,11 +1,11 @@
 /*jshint esversion: 6 */
-"use strict";
 
 function log() {
   window.console.log.apply(null, arguments);
 }
 
 function relative_omission() {
+    "use strict";
 
     var d3 = window.d3;
 
@@ -21,13 +21,14 @@ function relative_omission() {
         ch: 200.0,         // total height of the svg (includes margins)
         // cw: 200.0,
         // https://devdocs.io/d3~5/d3-scale#scaleImplicit
-        step_width: 20,    // step width for the bars (see d3.js doc)
+        step_width: 1,    // step width for the bars (see d3.js doc)
         bar_padding: 0.2,  // ratio of step width used as a gap between 2 bars
     };
     // height and width for the bars area of the svg
     dims.h = dims.ch - margins.bottom - margins.top;
     dims.w = (dims.step_width) * data_size;
     dims.cw = dims.w + margins.left + margins.right;
+    dims.extent = [[margins.left, margins.top], [margins.left + dims.w, margins.top + dims.h]];
 
     // treat each dataset, one by one, one for each translatation
     $.each(window.vis_data, (text_code, data) => {
@@ -46,36 +47,36 @@ function relative_omission() {
         svg.attr('viewBox', '0 0 '+dims.cw+' '+dims.ch)
         //  .attr("preserveAspectRatio", "xMinYMin meet")
         ;
+
+        function myDelta() {
+            var ret = -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1) / 200;
+            window.console.log(ret);
+            return ret;
+        }
+
+        var zoom = svg.call(
+            d3.zoom()
+            .scaleExtent([1, 20])
+            .translateExtent(dims.extent)
+            .extent(dims.extent)
+            .wheelDelta(myDelta)
+            .on("zoom", zoomed)
+        );
+
         var chart_group = svg.append('g')
-          .attr('transform', 'translate('+margins.left+', '+margins.top+')');
+          // .attr('transform', 'translate('+margins.left+', '+margins.top+')')
+        ;
 
         // scales & axes
         // var scale_y = d3.scaleLinear().domain([0, 1.0]).range([dims.h, 0]);
-        var scale_y = d3.scaleLinear().domain([0, 1.0]).range([0, dims.h]);
-        var axis_y = chart_group.append('g').classed('axis-y', true)
-            .call(d3.axisLeft(scale_y)
-              .ticks(3, '%')
-              // TODO: add more ticks on Y axes but d3.js won't listen!
-              //.tickValues([0, 0.25, 0.5, 0.75, 1])
-              //.tickFormat(d3.format('%'))
-            )
+        var scale_y = d3.scaleLinear()
+            .domain([0, 1.0])
+            .range([dims.extent[0][1], dims.extent[1][1]])
         ;
-
         var scale_x = d3.scaleBand()
             .domain(data.map(d => d.lemma))
-            .range([0, dims.w])
+            .range([dims.extent[0][0], dims.extent[1][0]])
             .padding(dims.bar_padding)
-        ;
-
-        // http://bl.ocks.org/d3noob/ccdcb7673cdb3a796e13 (rotated labels)
-        var axis_x = chart_group.append('g').classed('axis-x', true)
-            .attr('transform', 'translate(0, '+dims.h+')')
-            //.attr('transform', 'translate(0, '+0+')')
-            .call(d3.axisTop(scale_x))
-            .selectAll('text')
-                .attr("y", "0.4em")
-                .attr("x", "0.7em")
-                .attr('transform', d => 'rotate(-'+90+')')
         ;
 
         // bars
@@ -85,9 +86,9 @@ function relative_omission() {
             .append('rect')
                 .classed('bar', true)
                 .attr('x', d => scale_x(d.lemma))
-                .attr('y', 0)
+                .attr('y', scale_y(0.0))
                 .attr('width', scale_x.bandwidth())
-                .attr('height', d => scale_y(d.omitted / d.freq))
+                .attr('height', d => scale_y(d.omitted / d.freq) - scale_y(0))
         ;
 
         // vertical "cursor" for the hovered bar
@@ -99,6 +100,42 @@ function relative_omission() {
             .attr('y1', 0)
             .attr('y2', scale_y(1.0))
             .classed('show', false)
+        ;
+
+        // http://bl.ocks.org/d3noob/ccdcb7673cdb3a796e13 (rotated labels)
+        function axis_x(g, zoom_factor) {
+            g.attr('transform', 'translate(0, '+(margins.top + dims.h)+')')
+            // .attr('transform', 'translate(0, '+0+')')
+            .call(d3.axisTop(scale_x));
+
+            if (!g.classed('ticked')) {
+                g.selectAll('text')
+                    .attr("y", "0.4em")
+                    .attr("x", "0.7em")
+                    .attr('transform', d => 'rotate(-90)');
+            }
+
+            g.classed('hidden', zoom_factor < 10.0);
+        }
+
+        chart_group.append('g').classed('axis-x', true).call(axis_x, 1.0);
+
+        // white rectangle to cover the bars than can spill out of the central
+        // area and overlap with the y axis.
+        chart_group.append('rect')
+            .attr('height', dims.ch)
+            .attr('y', margins.top)
+            .attr('fill', 'white')
+            .attr('width', margins.left);
+
+        var axis_y = chart_group.append('g').classed('axis-y', true)
+            .attr('transform', 'translate('+margins.left+', 0)')
+            .call(d3.axisLeft(scale_y)
+                .ticks(3, '%')
+                // TODO: add more ticks on Y axes but d3.js won't listen!
+                //.tickValues([0, 0.25, 0.5, 0.75, 1])
+                //.tickFormat(d3.format('%'))
+            )
         ;
 
         // title of the chart
@@ -131,49 +168,79 @@ function relative_omission() {
         // b) user couldn't select lemma without omissions (0-height bar)
         // See https://bl.ocks.org/mbostock/3902569
         svg.on(
-          'mousemove', function() {
-              var xy = d3.mouse(this);
+            'mousemove', function() {
+                var xy = d3.mouse(this);
 
-              var idx = (
-                xy[0] - margins.left - scale_x.paddingOuter() * scale_x.step()
-              ) / scale_x.step();
-              idx = Math.floor(idx);
+                var idx = 0;
+                if (0) {
+                    idx = (
+                      xy[0] - margins.left -
+                      scale_x.paddingOuter() * scale_x.step()
+                    ) / scale_x.step();
+                } else {
+                    var t = d3.zoomTransform(svg.node());
+                    idx = t.invertX(xy[0]) - margins.left;
+                }
+                idx = Math.floor(idx);
 
-              if (data[idx]) {
-                  var bar = bars.select('.bar:nth-child('+(idx+1)+')');
-                  if (bar.classed('highlighted')) return;
+                if (data[idx]) {
+                    var bar = bars.select('.bar:nth-child('+(idx+1)+')');
+                    if (bar.classed('highlighted')) return;
 
-                  clear_highlight();
-                  bar.classed('highlighted', true);
+                    clear_highlight();
+                    bar.classed('highlighted', true);
 
-                  window.viz_highlights = bar;
+                    window.viz_highlights = bar;
 
-                  var datum = bar.datum();
+                    var datum = bar.datum();
 
-                  datum.text_label = window.get_text_info(text_code).label;
+                    datum.text_label = window.get_text_info(text_code).label;
 
-                  // log(datum);
-                  window.infobox_dict(datum);
+                    // log(datum);
+                    window.infobox_dict(datum);
 
-                  var x0 = scale_x(datum.lemma);
-                  if (!window.viz_cursors)
-                    window.viz_cursors = d3.selectAll('.cursor');
-                  window.viz_cursors
-                    .attr('x1', x0)
-                    .attr('x2', x0)
-                    .classed('show', true)
-                  ;
+                    var x0 = scale_x(datum.lemma);
+                    if (!window.viz_cursors)
+                      window.viz_cursors = d3.selectAll('.cursor');
+                    window.viz_cursors
+                      .attr('x1', x0)
+                      .attr('x2', x0)
+                      .classed('show', true)
+                    ;
 
-              } else {
-                  on_leave_bar();
-              }
-          }
+                } else {
+                    on_leave_bar();
+                }
+            }
         );
         svg.on(
           'mouseleave', function() {
             on_leave_bar();
           }
         );
+
+        function zoomed() {
+            var t = d3.event.transform;
+
+            if (t.applyX(10) == scale_x()) {
+                return;
+            }
+
+            scale_x.range(
+                [dims.extent[0][0], dims.extent[1][0]]
+                .map(d => t.applyX(d))
+            );
+
+            scale_x.padding(
+                t.k >= 10.0 ? dims.bar_padding : 0.0
+            );
+
+            svg.selectAll(".bar")
+                .attr("x", d => scale_x(d.lemma))
+                .attr("width", scale_x.bandwidth());
+
+            svg.selectAll('.axis-x').call(axis_x, t.k);
+        }
 
     });
 

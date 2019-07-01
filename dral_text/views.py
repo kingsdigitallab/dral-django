@@ -4,6 +4,7 @@ from .forms import ImportSheetForm
 from .management.commands.drtext import Command
 from dral_text.models import Text, Chapter, Occurence, Sentence, Lemma,\
     SheetStyle
+from django.contrib.admin.views.decorators import staff_member_required
 
 
 def get_context():
@@ -16,6 +17,7 @@ def get_context():
     return context
 
 
+@staff_member_required
 def view_import(request):
     '''landing page for all front-end data-related tasks'''
     context = get_context()
@@ -43,6 +45,7 @@ def view_import(request):
     return render(request, 'dral_text/import.html', context)
 
 
+@staff_member_required
 def view_clean_data(request):
 
     context = get_context()
@@ -66,6 +69,7 @@ def view_clean_data(request):
     return render(request, 'dral_text/clean_data.html', context)
 
 
+@staff_member_required
 def view_upload_occurrences(request):
     def import_handler(file_path):
         importer = Command()
@@ -80,6 +84,7 @@ def view_upload_occurrences(request):
     return view_upload_sheet(request, import_handler, context)
 
 
+@staff_member_required
 def view_upload_sentences(request):
     def import_handler(file_path):
         importer = Command()
@@ -93,6 +98,7 @@ def view_upload_sentences(request):
     return view_upload_sheet(request, import_handler, context)
 
 
+@staff_member_required
 def view_upload_texts(request):
     def import_handler(file_path):
         importer = Command()
@@ -106,6 +112,7 @@ def view_upload_texts(request):
     return view_upload_sheet(request, import_handler, context)
 
 
+@staff_member_required
 def view_upload_sheet(request, import_handler, context):
 
     form = ImportSheetForm()

@@ -12,7 +12,8 @@ def get_site_root(context):
     # so object-comparison to self will return false as objects would differ
     ret = None
 
-    site = getattr(context['request'], 'site', None)
+    request = context.get('request', {})
+    site = getattr(request, 'site', None)
     if not site:
         # no reference, let's get ANY site
         site = Site.objects.first()
