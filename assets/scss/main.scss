@@ -1,5 +1,10 @@
 /** Your custom scss here **/
 
+$accent-color: #656c8f;
+$body-text-color: #444444;
+$complementary-color: #8f6581;
+$light-gray: #e8e8e8;
+$neutral-color: #8f8865;
 $primary-color: #658f73;
 
 *,
@@ -9,6 +14,7 @@ $primary-color: #658f73;
 }
 
 body {
+  color: $body-text-color;
   font-family: sans-serif;
   margin: 0;
 }
@@ -17,9 +23,17 @@ a {
   color: $primary-color;
   text-decoration: none;
 
+  &:focus {
+    color: $accent-color;
+  }
+
   &:hover {
     color: darken($primary-color, 20%);
     text-decoration: underline;
+  }
+
+  &:visited {
+    color: $neutral-color;
   }
 }
 
