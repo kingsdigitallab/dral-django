@@ -227,8 +227,16 @@ h2 {
 
       .axis-x {
         text {
-          text-anchor: start;
-          color: grey;
+            text-anchor: start;
+            color: grey;
+
+            // brighter outline so text is still visible on top of dark bars
+            paint-order: stroke;
+            stroke: #aaa;
+            stroke-width: 0.5px;
+            stroke-linecap: square;
+            stroke-linejoin: round;
+            font-weight: 100;
         }
         &.hidden .tick {
             visibility: hidden;
@@ -283,6 +291,7 @@ new-chapter {
     color: white;
     margin: 1rem;
     position: fixed;
+    z-index: 100;
     top: 0;
     left: 0;
     font-size: 0.9rem;
