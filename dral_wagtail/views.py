@@ -8,6 +8,8 @@ from django.template.defaultfilters import slugify
 
 class Visualisation(object):
 
+    ALL_WORDS_STRING = 'ALL'
+
     def __init__(self):
         self.chapter_slugs = OrderedDict(list(
             Chapter.objects.values_list('slug', 'id').order_by('display_order')
@@ -75,7 +77,7 @@ class Visualisation(object):
             },
             {
                 'key': 'lemma',
-                'default': 'SAY',
+                'default': self.ALL_WORDS_STRING,
                 'name': 'Repeteme',
                 'type': 'str',
             },
@@ -211,7 +213,7 @@ class Visualisation(object):
         self.context['vis_data'] = data
 
     def visualisation_proof_read(self):
-        lemma_string = self.config.get('lemma', 'SAY')
+        lemma_string = self.config.get('lemma')
         chapters = self.config.get('chapter')
 
         _, text_codes = self.get_chap_text_from_config()
@@ -231,7 +233,7 @@ class Visualisation(object):
                 text__code__in=['en'] + text_codes,
             )
 
-            if 1 and lemma_string:
+            if lemma_string != self.ALL_WORDS_STRING:
                 occurrences = occurrences.filter(
                     lemma__string=lemma_string
                 )
@@ -296,6 +298,10 @@ class Visualisation(object):
                 'blocks': blocks
             }
             data_chapters.append(data_chapter)
+
+        if lemma_string != self.ALL_WORDS_STRING:
+            self.context['link_to_all_words'] = \
+                '?viz=proof_read&lemma={}'.format(self.ALL_WORDS_STRING)
 
         self.context['vis_data'] = {
             'chapters': data_chapters
