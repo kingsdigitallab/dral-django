@@ -2,26 +2,19 @@
 {% load staticfiles compress wagtailcore_tags dral_wagtail_tags %}
 
 {% block header %}
-    <header>
-        <a href="/">DRaL</a>
-        &gt;
-        <a href="/visualisations/">Visualisations</a>
-        &gt;
-        <span class="page-title">{{ page.title }}</span>
-        <a class="toggle-settings" href="#">[settings]</a>
-    </header>
+{% include 'includes/header.html' %}
 {% endblock %}
 
 {% block title %}{% endblock %}
 
 {% block main %}
-    {{ block.super }}
+{{ block.super }}
 
-    {% include 'dral_visualisations/fragments/settings.html' %}
+{% include 'dral_visualisations/fragments/settings.html' %}
 
-    <div id="visualisation">
-        Loading visualisation...
-    </div>
+<div id="visualisation">
+    Loading visualisation...
+</div>
 {% endblock %}
 
 {% block footer_wrapper %}
