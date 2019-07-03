@@ -76,7 +76,7 @@ class Visualisation(object):
             {
                 'key': 'lemma',
                 'default': 'SAY',
-                'name': 'Lemma',
+                'name': 'Repeteme',
                 'type': 'str',
             },
             {
@@ -94,21 +94,21 @@ class Visualisation(object):
         return ret
 
     def view_visualisation(self):
-
         config = self.config = self.get_config()
         self.context['config'] = config.get_list()
 
         code = config.get('viz', 1)
-
-        method = getattr(self, 'visualisation_{}'.format(code))
-        method()
 
         template_path = 'dral_visualisations/{}.html'.format(code)
 
         from django.template.loader import get_template
         template = get_template(template_path)
 
+        ret = None
+
         if self.request.GET.get('js', '') == '1':
+            method = getattr(self, 'visualisation_{}'.format(code))
+            method()
             # template_path = 'text_alignment/views/%s.html' % selected_view
             json_res = {
                 'config': config.get_list(),
@@ -118,14 +118,15 @@ class Visualisation(object):
             }
 
             from django.http import JsonResponse
-            return JsonResponse(json_res)
+            ret = JsonResponse(json_res)
         else:
             self.context['text_infos'] = self.get_text_infos()
-            return render(
+            ret = render(
                 self.context['request'],
                 'dral_wagtail/visualisation_page.html',
                 self.context
             )
+        return ret
 
     def get_text_infos(self):
         ret = {}
@@ -210,18 +211,12 @@ class Visualisation(object):
         self.context['vis_data'] = data
 
     def visualisation_proof_read(self):
-        lemma = self.config.get('lemma', 'DOORS')
+        lemma_string = self.config.get('lemma', 'SAY')
         chapters = self.config.get('chapter')
 
         _, text_codes = self.get_chap_text_from_config()
 
         sort_by = self.config.get('sort', True)
-#         if sort_by == 'name':
-#             lemma_order = 'lemma_string'
-#         elif sort_by == 'omission':
-#             lemma_order = 'name'
-#         else:
-#             lemma_order = ''
 
         from dral_text.models import Occurence
 
@@ -234,7 +229,14 @@ class Visualisation(object):
             occurrences = Occurence.objects.filter(
                 chapter__slug=chapter,
                 text__code__in=['en'] + text_codes,
-            ).select_related(
+            )
+
+            if 1 and lemma_string:
+                occurrences = occurrences.filter(
+                    lemma__string=lemma_string
+                )
+
+            occurrences = occurrences.select_related(
                 'lemma', 'text'
             )
 
@@ -249,8 +251,6 @@ class Visualisation(object):
                 lemma = occ.lemma
 
                 if lemma != last_lemma:
-                    if block:
-                        blocks.append(block)
                     block = {
                         'keyword': lemma,
                         'texts': [],
@@ -258,6 +258,7 @@ class Visualisation(object):
                         'freq': 0,
                         'omissions': 0,
                     }
+                    blocks.append(block)
 
                 if text != last_text:
                     strings = []
@@ -284,10 +285,6 @@ class Visualisation(object):
 
                 last_text = text
                 last_lemma = lemma
-
-            # add last block
-            if block and blocks and blocks[-1] != block:
-                blocks.append(block)
 
             if sort_by == 'frequency':
                 blocks = sorted(blocks, key=lambda b: -b['freq'])

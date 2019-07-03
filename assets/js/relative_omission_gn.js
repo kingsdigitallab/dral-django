@@ -266,6 +266,19 @@ function relative_omission() {
             on_leave_bar();
           }
         );
+        svg.on(
+            'click', function() {
+                var xy = d3.mouse(this);
+
+                var idx = g_trans.invertX(xy[0]) - margins.left;
+                idx = Math.floor(idx);
+
+                if (data[idx]) {
+                    var url = window.location.href.replace(/viz=[^&]*/, 'viz=proof_read').replace(/lemma=[^&]*/, 'lemma='+data[idx].lemma.trim());
+                    window.location = url;
+                }
+            }
+        );
 
         function zoomed() {
             // the event transform;
@@ -297,7 +310,6 @@ function relative_omission() {
 
             g_trans.x = t.x;
             g_trans.k = t.k;
-            // window.console.log(g_trans.k, g_trans.x);
 
             var new_range = [dims.extent[0][0], dims.extent[1][0]]
                 .map(d => g_trans.applyX(d));
@@ -308,8 +320,6 @@ function relative_omission() {
             g_scale_x.padding(
                 g_trans.k >= zoom_threshold ? dims.bar_padding : 0.0
             );
-
-            // window.console.log(has_transitioned);
 
             for (var chart of charts) {
                 // copy the triggering transform into other svgs

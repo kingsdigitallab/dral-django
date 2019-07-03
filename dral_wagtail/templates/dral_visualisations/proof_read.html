@@ -4,12 +4,8 @@
     <h2>{{ chapter.name }}</h2>
     <table class="viz-proof">
         {% for block in chapter.blocks %}
-            <tr class="keyword">
-                <td colspan="10">
-                    {{block.keyword.string}}
-                    ({{block.keyword.forms}})
-                    ({{ block.freq }})
-                </td>
+            <tr class="keyword" id="{{ block.keyword.string|slugify }}">
+                <td colspan="10">{{block.keyword.string}} ({{block.keyword.forms}}) ({{ block.freq }})</td>
             </tr>
             {% for row in block.texts %}
                 <tr class="lang-row lang-row-{{row.name}}">
@@ -22,9 +18,7 @@
                 </tr>
             {% endfor %}
             <tr class="sidxs">
-                <td></td>
-                <td></td>
-                <td></td>
+                <td></td><td></td><td></td>
                 {% for idx in block.sidxs %}
                     <td>{{ idx|default:"?" }}</td>
                 {% endfor %}
