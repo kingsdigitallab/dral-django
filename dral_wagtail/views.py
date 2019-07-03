@@ -81,7 +81,10 @@ class Visualisation(object):
             },
             {
                 'key': 'text',
-                'default': self.text_codes[:],
+                'default': [
+                    c for c in self.text_codes[:]
+                    if c in ['ru', 'pol', 'lt']
+                ],
                 'options': self.text_codes[:],
                 'name': 'Text',
                 'type': 'multi',
