@@ -5,6 +5,9 @@ from .management.commands.drtext import Command
 from dral_text.models import Text, Chapter, Occurence, Sentence, Lemma,\
     SheetStyle
 from django.contrib.admin.views.decorators import staff_member_required
+from django.http.response import JsonResponse
+from django.core.paginator import Paginator
+from _collections import OrderedDict
 
 
 def get_context():
@@ -147,3 +150,69 @@ def handle_uploaded_file(f, import_handler):
         ret['error'] = '{} ({})'.format(e, e.__class__.__name__)
 
     return ret
+
+
+def get_filters_from_request(request, param_filters):
+    '''returns a Django QuerySet filter dictionary
+    from a http request and a dictionary mapping arguments to filters
+    '''
+    ret = {}
+    for param, filter in param_filters.items():
+        values = request.GET.get(param, '')
+
+        if param == 'repeteme' and values == 'ALL':
+            continue
+
+        if values:
+            if ',' in values:
+                ret[filter + '__in'] = values.split(',')
+            else:
+                ret[filter] = values
+
+    return ret
+
+
+def view_occurrences_api(request):
+    per_page = 10
+    page_index = int(request.GET.get('page', 1))
+
+    data = []
+    meta = {}
+    res = OrderedDict([
+        ['jsonapi', {'version': '1.1'}],
+        ['meta', meta],
+        ['errors', []],
+        ['data', data]
+    ])
+
+    filters = get_filters_from_request(request, {
+        'text': 'text__code',
+        'repeteme': 'lemma__string',
+        'chapter': 'chapter__slug',
+    })
+    occs = Occurence.objects.filter(**filters)
+
+    occs = occs.select_related('chapter', 'lemma', 'text')
+
+    occs = occs.order_by('chapter__display_order', 'lemma',
+                         'text', 'sentence_index', 'id')
+
+    pages = Paginator(occs, per_page)
+    page = pages.get_page(page_index)
+    meta['totalPages'] = pages.count
+
+    for occ in page:
+        occ_dict = {
+            'type': 'occurrences',
+            'id': str(occ.id),
+            'attributes': {
+                'string': occ.string,
+                'chapter': occ.chapter.slug,
+                'repeteme': occ.lemma.string,
+                'text': occ.text.code,
+                'sentence': occ.sentence_index,
+            }
+        }
+        data.append(occ_dict)
+
+    return JsonResponse(res)

@@ -3,12 +3,17 @@
 
 {% block header %}
     <header>
-        <a href="/">DRaL</a>
-        &gt;
-        <a href="/visualisations/">Visualisations</a>
-        &gt;
-        <span class="page-title">{{ page.title }}</span>
-        <a class="toggle-settings" href="#">[settings]</a>
+        <span class="breadcrumb">
+            <a href="/">DRaL</a>
+            &gt;
+            <a href="/visualisations/">Visualisations</a>
+            &gt;
+            <span class="page-title">{{ page.title }}</span>
+        </span>
+        <span class="actions">
+            <a class="toggle-settings" href="#">[settings]</a>
+            <a id="json-link" class="hidden" href="#">JSON</a>
+        </span>
     </header>
 {% endblock %}
 
@@ -95,6 +100,7 @@
             var $fragment = $('#visualisation');
             var config = {{config|json}};
             var vue_config = new_vue_config(config);
+            var $json_link = $('#json-link');
 
             $win.on('keyup', function(ev) {
                 if (ev.which == 27) {
@@ -193,6 +199,14 @@
                             }
                         });
                     }
+
+                    if ($json_link.length) {
+                        $json_link.attr(
+                            'href',
+                            '/api/v1/occurrences/'+window.location.search
+                        );
+                    }
+                    $json_link.toggleClass('hidden', $json_link.length < 1);
                 });
             }
             request_fragment();

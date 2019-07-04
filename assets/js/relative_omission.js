@@ -276,7 +276,7 @@ function relative_omission() {
                 if (data[idx]) {
                     var url = window.location.href;
                     url = url.replace(/viz=[^&]*/, 'viz=tabular');
-                    url = url.replace(/lemma=[^&]*/, 'lemma='+data[idx].lemma.trim());
+                    url = url.replace(/repeteme=[^&]*/, 'repeteme='+data[idx].lemma.trim());
                     window.location = url;
                 }
             }

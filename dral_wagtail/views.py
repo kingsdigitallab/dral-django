@@ -4,6 +4,7 @@ from dral_wagtail.api_vars import API_Vars
 from dral_text.models import Chapter, Text
 from django.conf import settings
 from django.template.defaultfilters import slugify
+from django.http.response import JsonResponse
 
 
 class Visualisations(object):
@@ -92,7 +93,7 @@ class Visualisation(object):
                 'type': 'int',
             },
             {
-                'key': 'lemma',
+                'key': 'repeteme',
                 'default': self.ALL_WORDS_STRING,
                 'name': 'Repeteme',
                 'type': 'str',
@@ -135,7 +136,6 @@ class Visualisation(object):
                 'page_title': code,
             }
 
-            from django.http import JsonResponse
             ret = JsonResponse(json_res)
         else:
             self.context['text_infos'] = self.get_text_infos()
@@ -184,7 +184,7 @@ class Visualisation(object):
             ;
         '''
 
-        lemma = self.config.get('lemma', 'SAY')
+        lemma = self.config.get('repeteme', 'SAY')
         if lemma == 'ALL':
             # we can't do ALL
             lemma = 'SAY'
@@ -232,7 +232,7 @@ class Visualisation(object):
         self.context['vis_data'] = data
 
     def visualisation_tabular(self):
-        lemma_string = self.config.get('lemma')
+        lemma_string = self.config.get('repeteme')
         chapters = self.config.get('chapter')
 
         _, text_codes = self.get_chap_text_from_config()
@@ -320,7 +320,7 @@ class Visualisation(object):
 
         if lemma_string != self.ALL_WORDS_STRING:
             self.context['link_to_all_words'] = \
-                '?viz=tabular&lemma={}'.format(self.ALL_WORDS_STRING)
+                '?viz=tabular&repeteme={}'.format(self.ALL_WORDS_STRING)
 
         self.context['vis_data'] = {
             'chapters': data_chapters
