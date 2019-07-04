@@ -14,6 +14,7 @@ import os
 
 from django_auth_ldap.config import LDAPGroupQuery
 from kdl_ldap.settings import *  # noqa
+from collections import OrderedDict
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
@@ -98,6 +99,7 @@ INSTALLED_APPS += [    # your project apps here
     'wagtail.sites',
     'wagtail.contrib.routable_page',
     'wagtail.contrib.table_block',
+    'wagtail.contrib.modeladmin',
     'taggit',
     'modelcluster',
     'wagtail.search',
@@ -321,3 +323,28 @@ WAGTAILSEARCH_BACKENDS = {
 
 # code of the language of the original work
 DRAL_REFERENCE_LANGUAGE = 'en'
+
+DRAL_VIZS = OrderedDict([
+    ['relative_omission', {
+        'type': 'featured',
+        'visibility': 'liv',
+    }],
+    ['relative_omission_old', {
+        'type': 'exploratory',
+        'visibility': None,
+    }],
+    ['relative_omission_calendar', {
+        'type': 'exploratory',
+        'visibility': 'liv',
+    }],
+    ['variants_progression', {
+        'type': 'exploratory',
+        'visibility': 'liv',
+    }],
+    ['proof_read', {
+        'type': 'exploratory',
+        'visibility': 'liv',
+    }],
+])
+for k, v in DRAL_VIZS.items():
+    v['key'] = k

@@ -274,7 +274,9 @@ function relative_omission() {
                 idx = Math.floor(idx);
 
                 if (data[idx]) {
-                    var url = window.location.href.replace(/viz=[^&]*/, 'viz=proof_read').replace(/lemma=[^&]*/, 'lemma='+data[idx].lemma.trim());
+                    var url = window.location.href;
+                    url = url.replace(/viz=[^&]*/, 'viz=proof_read');
+                    url = url.replace(/lemma=[^&]*/, 'lemma='+data[idx].lemma.trim());
                     window.location = url;
                 }
             }

@@ -45,13 +45,7 @@ class Visualisation(object):
             {
                 'key': 'viz',
                 'default': 'relative_omission',
-                'options': [
-                    'relative_omission',
-                    'relative_omission_gn',
-                    'relative_omission_calendar',
-                    'variants_progression',
-                    'proof_read'
-                ],
+                'options': list(settings.DRAL_VIZS.keys()),
                 'name': 'Visualisation',
                 'type': 'single',
             },
@@ -168,7 +162,10 @@ class Visualisation(object):
             ;
         '''
 
-        lemma = self.config.get('lemma', 'DOORS')
+        lemma = self.config.get('lemma', 'SAY')
+        if lemma == 'ALL':
+            # we can't do ALL
+            lemma = 'SAY'
         chapters = self.config.get('chapter')
         _, text_codes = self.get_chap_text_from_config()
 
@@ -307,7 +304,7 @@ class Visualisation(object):
             'chapters': data_chapters
         }
 
-    def visualisation_relative_omission(self):
+    def visualisation_relative_omission_old(self):
         '''
         For each unique (lemma, lg) pair we get:
             * the frequency (sc.qt)
@@ -374,7 +371,7 @@ class Visualisation(object):
         ]
         self.context['vis_data'] = OrderedDict(data)
 
-    def visualisation_relative_omission_gn(self):
+    def visualisation_relative_omission(self):
         '''
         For each unique (lemma, lg) pair we get:
             * the frequency (sc.qt)
@@ -437,7 +434,7 @@ class Visualisation(object):
         self.context['vis_data'] = OrderedDict(data)
 
     def visualisation_relative_omission_calendar(self):
-        ret = self.visualisation_relative_omission()
+        ret = self.visualisation_relative_omission_old()
         return ret
 
     def get_chap_text_from_config(self):

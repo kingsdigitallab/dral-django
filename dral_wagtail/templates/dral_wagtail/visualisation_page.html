@@ -35,7 +35,7 @@
     {# D3Js Library - Link to ext file for now #}
     <script src="https://d3js.org/d3.v5.min.js"></script>
 
-    <script type="text/javascript" src="/static/js/relative_omission_gn.js"></script>
+    <script type="text/javascript" src="/static/js/relative_omission.js"></script>
 
     {% block tooltip %}
 
@@ -61,20 +61,7 @@
         window.info_box_vue = null;
 
         function infobox_dict(dict) {
-            // console.log(dict);
             Vue.set(window.info_box_vue, 'd', dict);
-        }
-        function infobox_dict_old(dict) {
-            var message = '';
-            $.each(dict, function(k, v) {
-                if (message.length) message += '; ';
-                message += k + ': ' + v;
-            });
-            infobox(message);
-        }
-        function infobox_old(message) {
-            // $('#infobox').html(message);
-            // $('#infobox').toggle(!!message);
         }
 
         function round(value) {
