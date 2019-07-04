@@ -209,7 +209,7 @@ class Visualisation(object):
 
         self.context['vis_data'] = data
 
-    def visualisation_proof_read(self):
+    def visualisation_tabular(self):
         lemma_string = self.config.get('lemma')
         chapters = self.config.get('chapter')
 
@@ -298,7 +298,7 @@ class Visualisation(object):
 
         if lemma_string != self.ALL_WORDS_STRING:
             self.context['link_to_all_words'] = \
-                '?viz=proof_read&lemma={}'.format(self.ALL_WORDS_STRING)
+                '?viz=tabular&lemma={}'.format(self.ALL_WORDS_STRING)
 
         self.context['vis_data'] = {
             'chapters': data_chapters

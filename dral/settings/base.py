@@ -341,7 +341,7 @@ DRAL_VIZS = OrderedDict([
         'type': 'exploratory',
         'visibility': 'liv',
     }],
-    ['proof_read', {
+    ['tabular', {
         'type': 'exploratory',
         'visibility': 'liv',
     }],

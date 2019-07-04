@@ -49,12 +49,12 @@ function relative_omission() {
     window.viz_cursors = null;
 
     function get_unique_transform() {
-        // returns a unique identity tranform
-        // NOT the zoomIdentitySingleton
+        // returns a new unique d3 identity tranform
+        // NOT the zoomIdentity Singleton
         return d3.zoomIdentity.scale(2).scale(0.5);
     }
 
-    // treat each dataset, one by one, one for each translatation
+    // treat each dataset, one by one, one for each translation
     $.each(window.vis_data, (text_code, data) => {
         var text_info = window.get_text_info(text_code);
 
@@ -275,7 +275,7 @@ function relative_omission() {
 
                 if (data[idx]) {
                     var url = window.location.href;
-                    url = url.replace(/viz=[^&]*/, 'viz=proof_read');
+                    url = url.replace(/viz=[^&]*/, 'viz=tabular');
                     url = url.replace(/lemma=[^&]*/, 'lemma='+data[idx].lemma.trim());
                     window.location = url;
                 }

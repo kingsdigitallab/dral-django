@@ -3,9 +3,21 @@
 
 {% block main %}
 
+    <h3>Featured</h3>
     <ul>
       {% for viz in visualisations %}
-          <li><a href="{{ viz.webpath }}">{{ viz.title }}</a></li>
+        {% if viz.type == 'featured' %}
+          <li><a href="?viz={{ viz.key }}">{{ viz.key }}</a></li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+
+    <h3>Exploratory</h3>
+    <ul>
+      {% for viz in visualisations %}
+        {% if viz.type == 'exploratory' %}
+          <li><a href="?viz={{ viz.key }}">{{ viz.key }}</a></li>
+        {% endif %}
       {% endfor %}
     </ul>
 

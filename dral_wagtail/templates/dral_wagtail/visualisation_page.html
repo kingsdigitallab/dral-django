@@ -180,17 +180,19 @@
                     replace_fragment(data);
                     $fragment.stop(true, true).css('opacity', 1);
 
-                    window.info_box_vue = new Vue({
-                        el: '#infobox',
-                        data: {
-                            d: {},
-                        },
-                        filters: {
-                            percent: function(val, total) {
-                                return Math.round((val / total) * 1000) / 10;
+                    if ($('#infobox').length) {
+                        window.info_box_vue = new Vue({
+                            el: '#infobox',
+                            data: {
+                                d: {},
+                            },
+                            filters: {
+                                percent: function(val, total) {
+                                    return Math.round((val / total) * 1000) / 10;
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
                 });
             }
             request_fragment();

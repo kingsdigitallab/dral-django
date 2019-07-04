@@ -8,6 +8,7 @@ from django.utils.html import strip_tags
 from .views import Visualisation
 import re
 from django.shortcuts import render
+from django.conf import settings
 
 # ===================================================================
 #                            STATIC PAGES
@@ -90,13 +91,7 @@ class VisualisationSetPage(RichPage):
                 viz_code, context, request
             )
         else:
-            context['visualisations'] = [
-                {
-                    'title': viz['name'].replace('_', ' '),
-                    'webpath': '?viz=' + viz['key'],
-                }
-                for viz in Visualisation().get_visualisations_list()
-            ]
+            context['visualisations'] = settings.DRAL_VIZS.values()
 
             ret = render(request, self.get_template(request), context)
 
