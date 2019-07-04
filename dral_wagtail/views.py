@@ -6,6 +6,28 @@ from django.conf import settings
 from django.template.defaultfilters import slugify
 
 
+class Visualisations(object):
+
+    vizs = settings.DRAL_VIZS
+
+    @classmethod
+    def get_vizs(cls):
+        visibilities = ['liv']
+        if settings.DEBUG:
+            visibilities.append('dev')
+
+        return [
+            v
+            for v
+            in cls.vizs.values()
+            if v['visibility'] in visibilities
+        ]
+
+    @classmethod
+    def get_vizs_keys(cls):
+        return [v['key'] for v in cls.get_vizs()]
+
+
 class Visualisation(object):
 
     ALL_WORDS_STRING = 'ALL'
@@ -45,7 +67,7 @@ class Visualisation(object):
             {
                 'key': 'viz',
                 'default': 'relative_omission',
-                'options': list(settings.DRAL_VIZS.keys()),
+                'options': Visualisations.get_vizs_keys(),
                 'name': 'Visualisation',
                 'type': 'single',
             },

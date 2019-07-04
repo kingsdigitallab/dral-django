@@ -324,6 +324,17 @@ WAGTAILSEARCH_BACKENDS = {
 # code of the language of the original work
 DRAL_REFERENCE_LANGUAGE = 'en'
 
+'''
+List of visualisations, in display order.
+Format: [SLUG, METADATA]
+SLUG: is a web slug that MUST match the method name
+    dral_wagtail.views.Visualisation.visualisation_SLUG
+METADATA: if a dictionary with the following keys:
+    visibility:
+        'liv': visible on all sites
+        'dev': visible on dev / local site
+        None: never visible
+'''
 DRAL_VIZS = OrderedDict([
     ['relative_omission', {
         'type': 'featured',
