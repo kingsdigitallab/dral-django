@@ -174,6 +174,11 @@ def get_filters_from_request(request, param_filters):
 
 
 def view_occurrences_api(request):
+    ret = request_occurrences_api(request)
+    return JsonResponse(ret)
+
+
+def request_occurrences_api(request):
     per_page = 100
     page_index = int(request.GET.get('page', 1))
 
@@ -221,7 +226,7 @@ def view_occurrences_api(request):
         }
         data.append(occ_dict)
 
-    return JsonResponse(res)
+    return res
 
 
 def get_links_from_api_request(request, param_filters, page_index, pages):

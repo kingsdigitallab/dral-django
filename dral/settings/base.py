@@ -356,6 +356,10 @@ DRAL_VIZS = OrderedDict([
         'type': 'exploratory',
         'visibility': 'liv',
     }],
+    ['json', {
+        'type': 'featured',
+        'visibility': 'liv',
+    }],
 ])
 for k, v in DRAL_VIZS.items():
     v['key'] = k

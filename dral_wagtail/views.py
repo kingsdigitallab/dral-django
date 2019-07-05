@@ -459,6 +459,14 @@ class Visualisation(object):
         ret = self.visualisation_relative_omission_old()
         return ret
 
+    def visualisation_json(self):
+        from dral_text.views import request_occurrences_api
+        res = request_occurrences_api(self.request)
+        import json
+        self.context['vis_data'] = json.dumps(
+            res, indent=True, ensure_ascii=False)
+        self.context['api_link'] = res['links']['self']
+
     def get_chap_text_from_config(self):
         chapter_ids = [self.chapter_slugs[slug]
                        for slug in self.config.get('chapter')]

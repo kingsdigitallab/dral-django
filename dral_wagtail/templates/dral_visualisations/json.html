@@ -1,0 +1,10 @@
+{% load dral_wagtail_tags %}
+
+<h2>Request to the Web API</h2>
+<p>
+  <a href="{{ api_link }}">{{ api_link }}</a>
+</p>
+<h2>Response from the API (in JSON)</h2>
+<pre class="json-output">
+{{ vis_data }}
+</pre>

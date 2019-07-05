@@ -204,6 +204,15 @@ h2 {
   font-size: 0.9rem;
 }
 
+.json-output {
+  font-family: Consolas,Menlo,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace,sans-serif;
+  overflow-x: auto;
+  background-color: #eff0f1;
+  border-radius: 3px;
+  padding: 12px 8px;
+  font-size: 13px;
+}
+
 .relative-omission-gn {
   &.fit-width .chart {
     width: 100%;
