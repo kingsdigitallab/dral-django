@@ -8,6 +8,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.http.response import JsonResponse
 from django.core.paginator import Paginator
 from _collections import OrderedDict
+from django.urls.base import reverse
 
 
 def get_context():
@@ -173,7 +174,7 @@ def get_filters_from_request(request, param_filters):
 
 
 def view_occurrences_api(request):
-    per_page = 10
+    per_page = 100
     page_index = int(request.GET.get('page', 1))
 
     data = []
@@ -181,15 +182,17 @@ def view_occurrences_api(request):
     res = OrderedDict([
         ['jsonapi', {'version': '1.1'}],
         ['meta', meta],
+        ['links', {}],
+        ['data', data],
         ['errors', []],
-        ['data', data]
     ])
 
-    filters = get_filters_from_request(request, {
+    param_filters = {
         'text': 'text__code',
         'repeteme': 'lemma__string',
         'chapter': 'chapter__slug',
-    })
+    }
+    filters = get_filters_from_request(request, param_filters)
     occs = Occurence.objects.filter(**filters)
 
     occs = occs.select_related('chapter', 'lemma', 'text')
@@ -200,6 +203,9 @@ def view_occurrences_api(request):
     pages = Paginator(occs, per_page)
     page = pages.get_page(page_index)
     meta['totalPages'] = pages.count
+
+    res['links'] = get_links_from_api_request(
+        request, param_filters, page_index, pages)
 
     for occ in page:
         occ_dict = {
@@ -216,3 +222,30 @@ def view_occurrences_api(request):
         data.append(occ_dict)
 
     return JsonResponse(res)
+
+
+def get_links_from_api_request(request, param_filters, page_index, pages):
+    base_url = '{}://{}{}?{}'.format(
+        request.scheme,
+        request.get_host(),
+        reverse('api_occurrences'),
+        '&'.join([
+            '{}={}'.format(
+                k, v
+            )
+            for k, v
+            in request.GET.items()
+            if k in param_filters.keys()
+        ])
+    )
+    ret = {
+        'first': base_url + '&page={}'.format(1),
+        'self': base_url + '&page={}'.format(page_index),
+        'last': base_url + '&page={}'.format(pages.count),
+    }
+    if page_index > 1:
+        ret['previous'] = base_url + '&page={}'.format(page_index - 1)
+    if page_index < pages.count - 1:
+        ret['next'] = base_url + '&page={}'.format(page_index + 1)
+
+    return ret

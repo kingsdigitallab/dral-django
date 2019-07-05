@@ -8,5 +8,6 @@ urlpatterns = [
     path('import/texts/', views.view_upload_texts),
     path('import/remove/', views.view_clean_data),
 
-    path('api/v1/occurrences/', views.view_occurrences_api),
+    path('api/v1/occurrences/', views.view_occurrences_api,
+         name='api_occurrences'),
 ]
