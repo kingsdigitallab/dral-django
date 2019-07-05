@@ -359,3 +359,15 @@ DRAL_VIZS = OrderedDict([
 ])
 for k, v in DRAL_VIZS.items():
     v['key'] = k
+
+WEBPATH_COOKIE_POLICY = 'cookie-policy/'
+WEBPATH_ACCESSIBILITY_STATEMENT = 'accessibility-statement/'
+URL_GITHUB = 'https://github.com/kingsdigitallab/dral-django'
+
+CONTEXT_VARIABLES = [
+    'DEBUG',
+    'GA_ID',
+    'WEBPATH_COOKIE_POLICY',
+    'WEBPATH_ACCESSIBILITY_STATEMENT',
+    'URL_GITHUB',
+]

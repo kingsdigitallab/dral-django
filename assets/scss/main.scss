@@ -31,9 +31,13 @@ button,
   cursor: pointer;
   font-size: 16px;
   padding: 8px 16px;
+  // GN: added this to visually distinguish primary menu items
+  // from buttons / actions.
+  box-shadow: 0.2em 0.2em 0.3em #888;
 
   &:hover {
     background-color: darken($primary-color, 10%);
+    color: white;
   }
 }
 
@@ -43,46 +47,101 @@ main {
   padding: 10px 20px;
 }
 
+footer {
+  border-top: 1px solid darkgrey;
+}
+
 header {
   display: block;
+}
 
-  h1,
-  nav {
-    margin: 0;
-
-    a {
-      display: block;
-      padding: 10px;
-    }
+h1, nav.menu {
+  margin: 0;
+  a {
+    padding: 10px;
+    display: block;
   }
 }
 
 nav {
-  .menu {
-    display: block;
-    margin: 0;
-    overflow: hidden;
+  ul {
+    list-style-type: none;
     padding-left: 0;
+    margin: 0;
+  }
 
-    li {
-      background: $primary-color;
-      color: white;
-      display: inline-block;
-      float: left;
-      list-style: none;
-      border-right: 1px solid white;
+  &.menu {
+    ul {
+      overflow: hidden;
 
-      a {
+      li {
+        background: $primary-color;
         color: white;
+        display: inline-block;
+        float: left;
+        border-right: 1px solid white;
 
-        &:hover {
-          ackground: darken($primary-color, 20%);
+        a {
+          color: white;
+
+          &:hover {
+            background: darken($primary-color, 20%);
+          }
+        }
+
+        // GN: increase space between items
+        &:not(:first-child) {
+          margin-left: 1rem;
         }
       }
+    }
+  }
 
-      // GN: increase space between items
-      &:not(:first-child) {
-          margin-left: 1rem;
+  &.data-actions {
+    li {
+      line-height: 2rem;
+    }
+  }
+
+  &.breadcrumb, &.viz-actions, &.footer-links {
+    display: inline-block;
+    ul {
+      display: inline-block;
+      li {
+        display: inline;
+      }
+    }
+  }
+
+  &.breadcrumb {
+    margin-right: 2rem;
+  }
+
+  &.footer-links {
+    font-size: 0.8rem;
+    li:not(:first-child) {
+      &:before {
+        content: '|';
+        color: grey;
+        padding: 0 0.3rem;
+      }
+    }
+
+    li.github-link a:before {
+      content: '';
+      background-image: url(/static/images/GitHub-Mark-32px.png);
+      background-repeat: no-repeat;
+      background-size: 1em;
+      display: inline-block;
+      width: 1.2em;
+      height: 1em;
+    }
+  }
+  &.breadcrumb {
+    li:not(:first-child) {
+      &:before {
+        content: '>';
+        padding: 0 0.3rem;
       }
     }
   }
@@ -103,6 +162,8 @@ h2 {
     width: 100%;
   }
 }
+
+
 
 /* SVG */
 .relative-omission {
@@ -442,6 +503,10 @@ body {
     }
 }
 
+a.toggle-settings {
+
+}
+
 .setting-input {
     margin-left: 40px;
 }
@@ -500,3 +565,4 @@ p.error-message {
 .hidden {
     display: none;
 }
+

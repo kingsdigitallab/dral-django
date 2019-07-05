@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>{% block meta_title %}{{ page.title }}{% endblock %} | Distant Reading Across Languages</title>
+  <title>{% block meta_title %}{{ page.title }} | {% endblock %}Distant Reading Across Languages</title>
   <meta name="author" content="King's Digital Lab">
   <meta name="description" content="{{ page.description }}">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,12 +17,12 @@
   {% block header %}
     <header>
       {% include 'includes/header.html' %}
-      <nav>
+      <nav class="menu">
         {% include 'includes/navigation.html' %}
       </nav>
     </header>
   {% endblock %}
-  
+
   <main>
     {% block title %}<h2>{{ page.title }}</h2>{% endblock %}
     {% block main %}
@@ -42,7 +42,7 @@
 
   {% compress js %}
     <script src="{% static 'vendor/jquery/dist/jquery.min.js' %}"></script>
-  
+
     <script src="{% static 'js/main.js' %}"></script>
   {% endcompress %}
 

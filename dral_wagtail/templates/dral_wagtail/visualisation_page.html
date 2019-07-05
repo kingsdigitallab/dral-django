@@ -3,22 +3,23 @@
 
 {% block header %}
     <header>
-        <span class="breadcrumb">
-            <a href="/">DRaL</a>
-            &gt;
-            <a href="/visualisations/">Visualisations</a>
-            &gt;
-            <span class="page-title">{{ page.title }}</span>
-        </span>
-        <span class="actions">
-            <a class="toggle-settings" href="#">[settings]</a>
-            <a id="json-link" class="hidden" href="#">JSON</a>
-        </span>
+      <nav aria-label="Breadcrumb" class="breadcrumb">
+        <ul>
+          <li><a href="/">DRaL</a></li>
+          <li><a href="/visualisations/">Visualisations</a></li>
+          <li><span class="page-title">{{ page.title }}</span></li>
+        </ul>
+      </nav>
+      <nav aria-label="Actions" class="viz-actions">
+        <ul>
+          <li><a class="toggle-settings button" href="#">settings</a></li>
+          <li><a id="json-link" class="hidden" href="#">JSON</a></li>
+        </ul>
+      </span>
     </header>
 {% endblock %}
 
 {% block title %}{% endblock %}
-
 {% block main %}
     {{ block.super }}
 
