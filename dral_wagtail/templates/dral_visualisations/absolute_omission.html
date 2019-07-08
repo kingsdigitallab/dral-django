@@ -1,0 +1,41 @@
+{% load dral_wagtail_tags %}
+
+{# {text: "LT", ratio_omitted: 0, lemma: "PACKAGE", omitted: 0, freq: 3} #}
+{% verbatim %}
+    <div id="infobox">
+        <template v-if="d.lemma">
+            <div>
+              Repeteme "{{ d.lemma }}" 
+              occurs {{ d.freq }} times in English 
+              and is omitted {{ d.omitted }} times ({{ d.omitted | percent(d.freq) }} %)
+              in {{ d.text_label }}
+            </div>
+        </template>
+    </div>
+
+  <div class="viz-introduction">
+    For each
+    <a href="#repeteme" title="a group of word forms that are related in terms of their written and phonological resemblance">repeteme</a> 
+    in the English edition of 
+    <a href="https://en.wikipedia.org/wiki/The_Sound_and_the_Fury" title="A novel written by William Faulkner and published in 1929.">the Sound and the Fury</a> 
+    the proportion of written occurences omitted from a translation.
+  </div>
+
+  <div class="charts-wrapper relative-omission-gn">
+  </div>
+
+  <div class="template chart-wrapper-template">
+      <div class="chart-wrapper">
+        <!-- h3>{{text}}</h3 -->
+        <svg class="chart {{text_code}}" data-text="{{text_code}}">
+        </svg>
+      </div>
+  </div>
+{% endverbatim %}
+
+<script>
+    window.vis_data = {{ vis_data|json }};
+    {# % include "dral_visualisations/relative_omission.js" % #}
+    relative_omission();
+</script>
+<!-- script type="text/javascript" src="/static/js/relative_omission.js"></script -->

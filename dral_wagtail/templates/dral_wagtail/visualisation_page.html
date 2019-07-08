@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% load staticfiles compress wagtailcore_tags dral_wagtail_tags %}
+
+{% block header %}
+    <header>
+      <nav aria-label="Breadcrumb" class="breadcrumb">
+        <ul>
+          <li><a href="/">DRaL</a></li>
+          <li><a href="/visualisations/">Visualisations</a></li>
+          <li><span class="page-title">{{ page.title }}</span></li>
+        </ul>
+      </nav>
+      <nav aria-label="Actions" class="viz-actions">
+        <ul>
+          <li><a class="toggle-settings button" href="#">settings</a></li>
+        </ul>
+      </span>
+    </header>
+{% endblock %}
+
+{% block title %}{% endblock %}
+{% block main %}
+    {{ block.super }}
+
+    {% include 'dral_visualisations/fragments/settings.html' %}
+
+    <div id="visualisation">
+        Loading visualisation...
+    </div>
+{% endblock %}
+
+{% block footer_wrapper %}
+
+{% endblock %}
+
+{% block footer_scripts %}
+    {{ block.super }}
+    <!-- script src="{% static 'vendor/vue/vue.js' %}"></script -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    {# D3Js Library - Link to ext file for now #}
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+
+    <script type="text/javascript" src="/static/js/relative_omission.js"></script>
+
+    {% block tooltip %}
+
+      <script  type="text/javascript">
+        window.text_infos = {{ text_infos|json }};
+
+        function get_text_info(text_code) {
+            var ret = {
+                'code': text_code,
+                'language': text_code,
+                'reference': text_code,
+                'label': text_code,
+                'pointer': text_code,
+            };
+            var text = window.text_infos[text_code];
+            if (text) {
+                Object.keys(ret).forEach(function (k) {
+                    ret[k] = text[k] || ret[k];
+                });
+            }
+            return ret;
+        }
+        window.info_box_vue = null;
+
+        function infobox_dict(dict) {
+            Vue.set(window.info_box_vue, 'd', dict);
+        }
+
+        function round(value) {
+            return round_dec(value, 2);
+        }
+
+        function round_dec(value, decimals) {
+            return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+        }
+
+        function apply_template(template_name, context) {
+            var ret = $('.template.'+template_name).first().html();
+
+            $.each(context, function(name, val) {
+                var rgx = new RegExp('\{\{\s*'+name+'\s*\}\}', 'g');
+                ret = ret.replace(rgx, val);
+            });
+
+            return ret;
+        };
+
+        // -------------------------------
+
+      </script>
+
+      <script type="text/javascript">
+        $(function() {
+            var $win = $(window);
+            var $body = $('body');
+            var $settings = $('#settings');
+            var $fragment = $('#visualisation');
+            var config = {{config|json}};
+            var vue_config = new_vue_config(config);
+            var $json_link = $('#json-link');
+
+            $win.on('keyup', function(ev) {
+                if (ev.which == 27) {
+                    return toggle_settings();
+                }
+            });
+
+            $body.on('click', '.toggle-settings', function() {
+                return toggle_settings();
+            });
+
+            function toggle_settings() {
+                $body.toggleClass('settings-visible');
+                if (!$body.hasClass('settings-visible')) {
+                    request_fragment();
+                }
+                return false;
+            }
+
+            function new_vue_config(config) {
+                var ret = new Vue({
+                    el: '#settings .settings-body',
+                    data: {
+                        vars: config
+                    },
+                    methods: {
+                        'select_all': function(avar) {
+                            $.each(avar.options, function(idx, option) {
+                                option.selected = true;
+                            });
+                        },
+                        'select_none': function(avar) {
+                            $.each(avar.options, function(idx, option) {
+                                option.selected = false;
+                            });
+                        },
+                        'get_request_data': function() {
+                            // We convert the config vars into a
+                            // dictionary: {var_key: [selected_value/key, ...]}
+                            var ret = {};
+                            $.each(this.vars, function(idx, avar) {
+                                var values = [];
+                                if (avar.type == 'int' || avar.type == 'str') {
+                                    // selection is help in var.selected
+                                    ret[avar.key] = avar.value;
+                                } else if (avar.type == 'single') {
+                                    // selection is help in var.selected
+                                    ret[avar.key] = avar.selected;
+                                } else {
+                                    // selctions are held in var.options.X.selected
+                                    $.each(avar.options, function(idx, option) {
+                                        if (option.selected) {
+                                            values.push(option.key);
+                                        }
+                                    });
+                                    ret[avar.key] = values.join(',');
+                                }
+                            });
+                            // console.log(ret);
+                            return ret;
+                        }
+                    }
+                });
+                return ret;
+            }
+
+            function request_fragment() {
+                $fragment.stop(true, true).fadeTo('slow', 0.2);
+
+                var url = document.location.href;
+
+                url = url.replace(/(#|\?).*/i, '');
+                params = vue_config.get_request_data();
+                params.js = 1;
+
+                var req = $.getJSON({
+                    url: url,
+                    data: params,
+                })
+
+                req.done(function(data, textStatus, jqXHR) {
+                    Vue.set(vue_config, 'vars', data.config);
+                    replace_fragment(data);
+                    $fragment.stop(true, true).css('opacity', 1);
+
+                    if ($('#infobox').length) {
+                        window.info_box_vue = new Vue({
+                            el: '#infobox',
+                            data: {
+                                d: {},
+                            },
+                            filters: {
+                                percent: function(val, total) {
+                                    return Math.round((val / total) * 1000) / 10;
+                                }
+                            }
+                        });
+                    }
+
+                    if ($json_link.length) {
+                        $json_link.attr(
+                            'href',
+                            '/api/v1/occurrences/'+window.location.search
+                        );
+                    }
+                    $json_link.toggleClass('hidden', $json_link.length < 1);
+                });
+            }
+            request_fragment();
+
+            function replace_fragment(data) {
+                $fragment.html(data.html);
+                $('.page-title').html(data.page_title);
+                if (history.pushState) {
+                    var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?' + data.qs;
+                    window.history.pushState({path:newurl},'',newurl);
+                }
+            }
+
+        });
+      </script>
+
+    {% endblock %}
+
+{% endblock %}

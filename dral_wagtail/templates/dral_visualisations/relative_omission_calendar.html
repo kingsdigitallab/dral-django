@@ -1,0 +1,115 @@
+{% load dral_wagtail_tags %}
+
+{% comment %}
+freq: 8
+language: "LT"
+lemma: "COMPANY"
+omitted: 0
+ratio_omitted: 0
+{% endcomment %}
+
+{% verbatim %}
+    <div id="infobox">
+        <template v-if="d.lemma">
+            <div>
+              Repeteme "{{ d.lemma }}" 
+              occurs {{ d.freq }} times in English 
+              and is omitted {{ d.omitted }} times ({{ d.omitted | percent(d.freq) }} %)
+              in {{ d.text_label }}
+            </div>
+        </template>
+    </div>
+
+  <div class="svg-viz">
+  </div>
+
+  <div class="template viz-calendar">
+      <h3>{{text_code}}</h3>
+      <svg class="calendar {{text_code}}" data-code="{{text_code}}">
+        <g></g>
+        <!--   rect class="overlay" width="100%" height="100%"></rect -->
+      </svg>
+  </div>
+{% endverbatim %}
+
+<script>
+    $(function() {
+
+        window.vis_data = {{ vis_data|json }};
+        // console.log(vis_data);
+
+        $viz = $('.svg-viz');
+
+        $.each(window.vis_data, function(text_code, data) {
+            // console.log(this);
+            $viz.append(apply_template(
+                'viz-calendar',
+                {'text_code': text_code}
+            ));
+            var $svg_group = $viz.find('g:last');
+            var $svg = $svg_group.parent();
+
+            var width = 0;
+
+            // console.log(this.length);
+
+            var width_increment = 20;
+
+            var y = 0;
+            var counter = 0;
+
+            $.each(data, function(i, d) {
+                var height = d.ratio_omitted * 100;
+
+                var class_omitted = (d.ratio_omitted == 1) ? 'omitted' : '';
+                if (d.ratio_omitted > 1) class_omitted = 'error';
+
+                var rectangles = d3.select($svg_group[0])
+                  .append('rect')
+                  .attr('class', 'square ' + class_omitted)
+                  .attr('height', '20px')
+                  .attr('width', '20px')
+                  .attr('x', width)
+                  .attr('y', y)
+                  .attr('data-idx', i)
+                  .attr('data-lng', d.language)
+                  // To display aligned at the bottom:
+                  // .attr('y', 500 - height)
+                  .attr('fill-opacity', d.ratio_omitted)
+                  .text(''+ d.lemma+': ' + d.omitted + '/' + d.freq);
+
+                  width += width_increment;
+                  counter++;
+
+                if (width+width_increment > $svg.width()) {
+                  y += 20;
+                  counter = 0;
+                  width = 0;
+                }
+            });
+
+
+           $svg.height(y);
+        });
+
+        // mouseover
+        // TODO: review performances...
+        // We don't attach an event to every bar:
+        // a) that would be prohibitive
+        // b) user couldn't select lemma without omissions (0-height bar)
+        // See https://bl.ocks.org/mbostock/3902569
+        d3.selectAll('rect').on('mouseenter', function() {
+            // TODO: better way to get the index from mouse coord
+            var $square = $(this);
+            var code = $square.parents('svg').data('code');
+            var d = window.vis_data[code][$square.data('idx')];
+            // d['omitted_pc'] = (d['ratio_omitted'] * 100.0).toFixed(1);
+            d.text_label = window.get_text_info(code).language;
+            infobox_dict(d);
+        }).on('mouseout',
+            function() {
+                infobox_dict({});
+            }
+        );
+    });
+</script>

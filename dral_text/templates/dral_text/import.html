@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags dral_wagtail_tags %}
+
+{% block main %}
+
+  <nav class="data-actions">
+    <ul>
+      <li><a href="strings/">Import strings</a></li>
+      <li><a href="sentences/">Import sentences</a></li>
+      <li><a href="texts/">Import text metadata</a></li>
+      <li><a href="/wagtail/dral_text/text/">Edit text metadta</a></li>
+      <li><a href="remove/">Remove</a></li>
+    </ul>
+  <nav>
+
+  <h2>Database content</h2>
+  <table class="database-stats">
+      <thead>
+      <tr>
+          <td>Text</td>
+          {% for chapter in chapters %}
+              <td colspan="2">{{ chapter.name }}</td>
+          {% endfor %}
+      </tr>
+      <tr>
+          <td></td>
+          {% for chapter in chapters %}
+              <td>Rep.</td>
+              <td>Sent.</td>
+          {% endfor %}
+      </tr>
+      </thead>
+      <tbody>
+          {% for text in stats %}
+              <tr>
+                  {% for v in text %}
+                      <td>{{v}}</td>
+                  {% endfor %}
+              </tr>
+          {% endfor %}
+      </tbody>
+  </table>
+
+{% endblock %}

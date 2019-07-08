@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags dral_wagtail_tags %}
+
+{% block main %}
+
+    {% if error %}
+        <p class="error-message">
+            ERROR: Import failed ({{ error }}).
+        </p>
+    {% endif %}
+
+    {% if error or not messages %}
+        {% if import_type == 'texts' %}
+            <p>
+                Use the form below to import text metadata from a spreadsheet.
+                Please upload a .ods file (you can save your file to .ods format using MS Excel or LibreOffice).
+            </p>
+            <p>
+                The first sheet should contain a table with the following headings
+                and one row per text.
+            </p>
+            <p>
+                Display code, Code, Edition Used, Date of production, Date of original publication, Authors, Language
+            </p>
+        {% endif %}
+        {% if import_type == 'occurrences' %}
+            <p>
+                Use the form below to import repetition strings from a spreadsheet.
+                Please upload a .ods file (you can save your file to .ods format using MS Excel or LibreOffice).
+            </p>
+            <p>
+                Each Sheet in your file corresponds to a chapter. (Sheets with a name starting with underscore or 'Sheet' will be ignored)
+                Add #1, #2, ... at the end of the name to specify the order of the chapter in the book.
+                e.g. 'Benjy #1', 'Dilsey #4'.
+            </p>
+        {% endif %}
+        {% if import_type == 'sentences' %}
+            <p>
+                Use the form below to import sentences.
+                Please upload a .ods file (you can save your file to .ods format using MS Excel or LibreOffice).
+            </p>
+            <p>
+                Each Sheet in your file corresponds to a chapter in a particular language.
+                (Sheets with a name starting with underscore or 'Sheet' will be ignored)
+                e.g. 'Benjy EN', 'Dilsey RU'.
+            </p>
+        {% endif %}
+        <p>
+            The import can take between 30s to 2 minutes. Thank you for your patience.
+        </p>
+
+        {% if form.is_multipart %}
+            <form enctype="multipart/form-data" method="post" action="">
+        {% else %}
+            <form method="post" action="">
+        {% endif %}
+                {% csrf_token %}
+                {{ form }}
+                <p>
+                    <button type="submit">Import</button>
+                </p>
+            </form>
+    {% else %}
+        <h3>Import complete</h3>
+        <p>Your file has been imported. The full import log is copied below. Potential issues are highlighted in orange.</p>
+        <div class="import-log">
+            {% for msg in messages %}
+                <div class="{% if 'WARNING' in msg %}msg-warning{% endif %} {% if '> Table' in msg %}msg-table{% endif %}">{{ forloop.counter }} {{msg}}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+{% endblock %}

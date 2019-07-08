@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags dral_wagtail_tags %}
+
+{% block main %}
+
+    <h3>Featured</h3>
+    <ul>
+      {% for viz in visualisations %}
+        {% if viz.type == 'featured' %}
+          <li><a href="?viz={{ viz.key }}">{{ viz.name }}</a></li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+
+    <h3>Exploratory</h3>
+    <ul>
+      {% for viz in visualisations %}
+        {% if viz.type == 'exploratory' %}
+          <li><a href="?viz={{ viz.key }}">{{ viz.name }}</a></li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+
+{% endblock %}

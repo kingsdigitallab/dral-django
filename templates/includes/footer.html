@@ -1,5 +1,30 @@
+
 <div>
     <p>
         Designed, developed and maintained by <a href="//kdl.kcl.ac.uk" title="King's Digital Lab">King's Digital Lab</a>.
     </p>
+    <nav class="footer-links">
+      <ul>
+        {% if request.user.is_staff %}
+          <li>
+            <a href="{% url 'data_management' %}">Data Management</a>
+          </li>
+        {% endif %}
+        {% if WEBPATH_COOKIE_POLICY %}
+          <li>
+            <a href="{{ WEBPATH_COOKIE_POLICY }}">Cookie Policy</a>
+          </li>
+        {% endif %}
+        {% if WEBPATH_ACCESSIBILITY_STATEMENT %}
+          <li>
+            <a href="{{ WEBPATH_ACCESSIBILITY_STATEMENT }}">Accesibility Statement</a>
+          </li>
+        {% endif %}
+        {% if URL_GITHUB %}
+          <li class="github-link">
+            <a href="{{ URL_GITHUB }}">DRaL on Github</a>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
 </div>

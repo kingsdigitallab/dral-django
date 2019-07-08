@@ -1,53 +1,61 @@
-{% load staticfiles compress  %}
+{% load staticfiles compress wagtailcore_tags %}
 <!DOCTYPE html>
-<html>
+<html lang="en-GB">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>{% block meta_title %}{% endblock %} | Distant Reading Across Languages</title>
+  <title>{% block meta_title %}{{ page.title }} | {% endblock %}Distant Reading Across Languages</title>
   <meta name="author" content="King's Digital Lab">
-  <meta name="description" content="">
+  <meta name="description" content="{{ page.description }}">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   {% compress css %}
-  <link rel="stylesheet" type="text/x-scss" href="{% static 'scss/main.scss' %}">
+    <link rel="stylesheet" type="text/x-scss" href="{% static 'scss/main.scss' %}">
   {% endcompress %}
 </head>
 <body>
-  <header>
-    {% include 'includes/header.html' %}
-  </header>
-
-  <nav>
-    {% include 'includes/navigation.html' %}
-  </nav>
+  {% block header %}
+    <header>
+      {% include 'includes/header.html' %}
+      <nav class="menu">
+        {% include 'includes/navigation.html' %}
+      </nav>
+    </header>
+  {% endblock %}
 
   <main>
-    {% block title %}{% endblock %}
+    {% block title %}<h2>{{ page.title }}</h2>{% endblock %}
     {% block main %}
+        {% if page.has_body %}
+            {{ page.body|richtext }}
+        {% endif %}
     {% endblock %}
   </main>
 
-  <footer>
-    {% block footer %}
-    {% include 'includes/footer.html' %}
-    {% endblock %}
-  </footer>
+  {% block footer_wrapper %}
+    <footer>
+      {% block footer %}
+          {% include 'includes/footer.html' %}
+      {% endblock %}
+    </footer>
+  {% endblock %}
 
   {% compress js %}
-  <script src="{% static 'vendor/jquery/dist/jquery.min.js' %}"></script>
+    <script src="{% static 'vendor/jquery/dist/jquery.min.js' %}"></script>
 
-  <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
   {% endcompress %}
 
   {% block footer_scripts %}{% endblock %}
 
   {% compress js %}
-  <script src="{% static 'js/google_analytics.js' %}"></script>
-  <script>
-    ga('create', '{{ GA_ID }}', 'auto');
-    ga('send', 'pageview');
-  </script>
+    {% if not DEBUG and GA_ID %}
+      <script src="{% static 'js/google_analytics.js' %}"></script>
+      <script>
+        ga('create', '{{ GA_ID }}', 'auto');
+        ga('send', 'pageview');
+      </script>
+    {% endif %}
   {% endcompress %}
 </body>
 </html>
