@@ -23,32 +23,25 @@ class API_Vars(object):
 
         options_selected = var.get('selected', [])
         options_default = var.get('default', [])
-        if isinstance(options_default, list):
-            options_default = [
-                get_key_from_name(v)
-                for v
-                in options_default
-            ]
 
         if 'options' in var:
-            if var['options'] and not isinstance(var['options'][0], dict):
+            if var['options']:
+                is_dict = isinstance(var['options'], dict)
                 options = []
-                for name in var['options']:
-                    option_key = get_key_from_name(name)
+                for option_key in var['options']:
                     options.append({
                         'key': option_key,
-                        'name': name,
+                        'name': var['options'][option_key] if is_dict
+                        else get_name_from_key(option_key),
                         'selected': option_key in options_selected,
                         'default': option_key in options_default,
                     })
 
                 var['options'] = options
 
-        assert(var.get('key') or var.get('name'))
+        assert(var.get('key'))
+        assert(var.get('name'))
         assert(var.get('type'))
-
-        var['key'] = var.get('key', var.get('name'))
-        var['name'] = var.get('name', var.get('key').title())
 
         # add it to our list of vars
 
@@ -61,18 +54,29 @@ class API_Vars(object):
         for var in self.vars.values():
             var['selected'] = self.get(var['key'], var['type'] == 'single')
 
+    def get_query_string(self):
+        '''returns the vars as a query string'''
+        import urllib
+        ret = '&'.join([
+            ('%s=%s' % (
+                urllib.parse.quote(akey, ','),
+                urllib.parse.quote(self.get_str(akey), ',')
+            ))
+            for akey
+            in self.vars
+        ])
+        return ret
+
     def get_dict(self):
+        '''returns the vars as a dict'''
         self._set_selected()
         return dict(self.vars)
 
     def get_list(self):
+        '''returns the vars as a list'''
         self._set_selected()
         ret = [var for var in self.vars.values()]
         return ret
-
-    def set_vars(self, keys_values):
-        for name, values in keys_values:
-            self.set(name, values)
 
     def reset_vars_from_request(self, request):
         '''selected value(s) from the request'''
@@ -119,21 +123,22 @@ class API_Vars(object):
 
     def get(self, akey, first=False, prop='key'):
         '''return the selected value(s) for the given var key'''
-        if 'options' in self.vars[akey]:
+        var = self.vars[akey]
+        if 'options' in var:
             ret = [
                 option.get(prop)
                 for option
-                in self.vars[akey]['options']
+                in var['options']
                 if option.get('selected')
             ]
 
             if first:
                 ret = ret[0]
         else:
-            ret = self.vars[akey]['value']
-            if self.vars[akey]['type'] == 'int':
+            ret = var['value']
+            if var['type'] == 'int':
                 ret = int(ret)
-            if self.vars[akey]['type'] == 'str':
+            if var['type'] == 'str':
                 ret = str(ret)
 
         return ret
@@ -145,23 +150,6 @@ class API_Vars(object):
             ret = ','.join(ret)
 
         return '%s' % ret
-
-    def get_query_string(self):
-        import urllib
-        ret = '&'.join([
-            ('%s=%s' % (
-                urllib.parse.quote(akey, ','),
-                urllib.parse.quote(self.get_str(akey), ',')
-            ))
-            for akey
-            in self.vars
-        ])
-        return ret
-
-
-def get_key_from_name(name):
-    import re
-    return re.sub(r'[^\w_]+', r'-', name.lower()).strip()
 
 
 def get_name_from_key(akey):

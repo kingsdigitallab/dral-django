@@ -5,7 +5,7 @@ from wagtail.core.models import Page
 from wagtail.admin.edit_handlers import FieldPanel, MultiFieldPanel
 from wagtail.search import index
 from django.utils.html import strip_tags
-from .views import Visualisation
+from .views import VisualisationView
 import re
 from django.shortcuts import render
 
@@ -87,12 +87,12 @@ class VisualisationSetPage(RichPage):
         }
 
         if viz_code:
-            viz = Visualisation()
+            viz = VisualisationView()
             ret = viz.process_request(
                 viz_code, context, request
             )
         else:
-            context['visualisations'] = Visualisations.get_vizs()
+            context['visualisations'] = Visualisations.get_vizs_list()
 
             ret = render(request, self.get_template(request), context)
 

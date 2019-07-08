@@ -1,55 +1,133 @@
 from django.shortcuts import render
 from collections import OrderedDict
-from dral_wagtail.api_vars import API_Vars
+from dral_wagtail.api_vars import API_Vars, get_name_from_key
 from dral_text.models import Chapter, Text
 from django.conf import settings
-from django.template.defaultfilters import slugify
 from django.http.response import JsonResponse
 
 
-class Visualisations(object):
+class Visualisation(object):
+    '''
+    Encapsulate the metadata about a visulisation.
 
-    vizs = settings.DRAL_VIZS
+    self.viz is a dictionary of metadata
 
-    @classmethod
-    def get_vizs(cls):
+    v = Visualisations.get_viz('my_viz')
+    v.name
+    v.key
+    '''
+
+    def __init__(self, viz_key, viz_dict):
+        self.viz = viz_dict
+        self.viz['key'] = viz_key
+        if 'name' not in self.viz:
+            self.viz['name'] = get_name_from_key(viz_key)
+
+    def __getattr__(self, name):
+        if name in self.viz:
+            return self.viz[name]
+        else:
+            return super(Visualisation, self).__getattr__(name)
+
+    def is_visible(self):
         visibilities = ['liv']
         if settings.DEBUG:
             visibilities.append('dev')
 
+        return self.viz['visibility'] in visibilities
+
+
+class Visualisations(object):
+
+    vizs = OrderedDict([
+        [viz_key, Visualisation(viz_key, viz_dict)]
+        for viz_key, viz_dict
+        in settings.DRAL_VIZS.items()
+    ])
+
+    @classmethod
+    def get_viz_keys(cls, include_hidden=False):
         return [
-            v
-            for v
-            in cls.vizs.values()
-            if v['visibility'] in visibilities
+            v.key for v
+            in cls.get_vizs_list(include_hidden=include_hidden)
         ]
 
     @classmethod
-    def get_vizs_keys(cls):
-        return [v['key'] for v in cls.get_vizs()]
+    def get_vizs_list(cls, include_hidden=False):
+        visible = [True]
+        if include_hidden:
+            visible.append(False)
+
+        return [
+            v for v
+            in cls.vizs.values()
+            if v.is_visible() in visible
+        ]
+
+    @classmethod
+    def get_viz(cls, viz_key):
+        return cls.vizs[viz_key]
 
 
-class Visualisation(object):
+class VisualisationConfig():
+    pass
+
+
+class VisualisationView(object):
 
     ALL_WORDS_STRING = 'ALL'
 
     def __init__(self):
-        self.chapter_slugs = OrderedDict(list(
-            Chapter.objects.values_list('slug', 'id').order_by('display_order')
-        ))
-        self.text_codes = list(
-            Text.objects.values_list(
-                'code', flat=True
-            ).exclude(code__iexact=settings.DRAL_REFERENCE_LANGUAGE)
+        # self.config = VisualisationConfig()
+        self.slugs_chapter = OrderedDict([
+            [ch.slug, ch] for ch in
+            Chapter.objects.all().order_by('display_order')
+        ])
+        self.codes_text = OrderedDict([
+            [text.code, text] for text in
+            Text.objects.exclude(code__iexact=settings.DRAL_REFERENCE_LANGUAGE)
             .order_by('code')
-        )
+        ])
 
     def process_request(self, visualisation_code, context, request):
         self.context = context
         self.request = request
 
-        ret = self.view_visualisation()
+        config = self.config = self.get_config()
+        self.context['config'] = config.get_list()
 
+        code = config.get('viz', 1)
+        viz = Visualisations.get_viz(code)
+
+        template_path = 'dral_visualisations/{}.html'.format(code)
+
+        ret = None
+
+        if self.request.GET.get('js', '') == '1':
+            from django.template.loader import get_template
+            template = get_template(template_path)
+
+            method = getattr(self, 'visualisation_{}'.format(code))
+            method()
+            # template_path = 'text_alignment/views/%s.html' % selected_view
+            json_res = {
+                'config': config.get_list(),
+                'html': template.render(self.context),
+                'qs': config.get_query_string(),
+                'page_title': viz.name,
+            }
+
+            ret = JsonResponse(
+                json_res,
+                json_dumps_params={'ensure_ascii': False}
+            )
+        else:
+            self.context['text_infos'] = self.get_text_infos()
+            ret = render(
+                self.context['request'],
+                'dral_wagtail/visualisation_page.html',
+                self.context
+            )
         return ret
 
     def get_config(self):
@@ -59,23 +137,25 @@ class Visualisation(object):
 
         return ret
 
-    def get_visualisations_list(self):
-        return API_Vars(self.get_config_schema()).get_all_options('viz')
-
     def get_config_schema(self):
 
         ret = [
             {
                 'key': 'viz',
                 'default': 'relative_omission',
-                'options': Visualisations.get_vizs_keys(),
+                'options': OrderedDict([
+                    [v.key, v.name]
+                    for v in Visualisations.get_vizs_list()
+                ]),
                 'name': 'Visualisation',
                 'type': 'single',
             },
             {
                 'key': 'chapter',
-                'default': list(self.chapter_slugs.keys()),
-                'options': list(self.chapter_slugs.keys()),
+                'default': list(self.slugs_chapter.keys()),
+                'options': OrderedDict(
+                    [[ch.slug, ch.name] for ch in self.slugs_chapter.values()]
+                ),
                 'name': 'Chapter',
                 'type': 'multi',
             },
@@ -101,49 +181,20 @@ class Visualisation(object):
             {
                 'key': 'text',
                 'default': [
-                    c for c in self.text_codes[:]
+                    c for c in self.codes_text.keys()
                     if c in ['ru', 'pol', 'lt']
                 ],
-                'options': self.text_codes[:],
+                'options': OrderedDict([
+                    [c, '{} ({})'.format(
+                        t.language, t.original_publication_year)]
+                    for c, t
+                    in self.codes_text.items()
+                ]),
                 'name': 'Text',
                 'type': 'multi',
             },
         ]
 
-        return ret
-
-    def view_visualisation(self):
-        config = self.config = self.get_config()
-        self.context['config'] = config.get_list()
-
-        code = config.get('viz', 1)
-
-        template_path = 'dral_visualisations/{}.html'.format(code)
-
-        from django.template.loader import get_template
-        template = get_template(template_path)
-
-        ret = None
-
-        if self.request.GET.get('js', '') == '1':
-            method = getattr(self, 'visualisation_{}'.format(code))
-            method()
-            # template_path = 'text_alignment/views/%s.html' % selected_view
-            json_res = {
-                'config': config.get_list(),
-                'html': template.render(self.context),
-                'qs': config.get_query_string(),
-                'page_title': code,
-            }
-
-            ret = JsonResponse(json_res)
-        else:
-            self.context['text_infos'] = self.get_text_infos()
-            ret = render(
-                self.context['request'],
-                'dral_wagtail/visualisation_page.html',
-                self.context
-            )
         return ret
 
     def get_text_infos(self):
@@ -193,12 +244,12 @@ class Visualisation(object):
 
         data = OrderedDict()
 
-        for lg in text_codes:
+        for text_code in text_codes:
             variants = {}
             # fetch all the occurrences
             words = get_rows_from_query(
                 query,
-                [lg, lemma, chapters, chapters],
+                [text_code, lemma, chapters, chapters],
                 rounding=3
             )
 
@@ -227,7 +278,7 @@ class Visualisation(object):
                 'words': words,
                 'variants': variants_data,
             }
-            data[lg] = language_data
+            data[text_code] = language_data
 
         self.context['vis_data'] = data
 
@@ -468,9 +519,9 @@ class Visualisation(object):
         self.context['api_link'] = res['links']['self']
 
     def get_chap_text_from_config(self):
-        chapter_ids = [self.chapter_slugs[slug]
+        chapter_ids = [self.slugs_chapter[slug].pk
                        for slug in self.config.get('chapter')]
-        text_codes = [slugify(c) for c in self.config.get('text')]
+        text_codes = self.config.get('text')
 
         return chapter_ids, text_codes
 

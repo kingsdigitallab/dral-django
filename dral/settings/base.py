@@ -334,11 +334,13 @@ METADATA: if a dictionary with the following keys:
         'liv': visible on all sites
         'dev': visible on dev / local site
         None: never visible
+USE Visualisations / Visualisation classes to manipulate this dictionary
 '''
 DRAL_VIZS = OrderedDict([
     ['relative_omission', {
         'type': 'featured',
         'visibility': 'liv',
+        'name': 'Relative omissions',
     }],
     ['relative_omission_old', {
         'type': 'exploratory',
@@ -347,22 +349,24 @@ DRAL_VIZS = OrderedDict([
     ['relative_omission_calendar', {
         'type': 'exploratory',
         'visibility': 'liv',
+        'name': 'Relative omissions (calendar)',
     }],
     ['variants_progression', {
         'type': 'exploratory',
         'visibility': 'liv',
+        'name': 'Variant progression',
     }],
     ['tabular', {
         'type': 'exploratory',
         'visibility': 'liv',
+        'name': 'Tabular',
     }],
     ['json', {
         'type': 'featured',
         'visibility': 'liv',
+        'name': 'JSON',
     }],
 ])
-for k, v in DRAL_VIZS.items():
-    v['key'] = k
 
 WEBPATH_COOKIE_POLICY = 'cookie-policy/'
 WEBPATH_ACCESSIBILITY_STATEMENT = 'accessibility-statement/'

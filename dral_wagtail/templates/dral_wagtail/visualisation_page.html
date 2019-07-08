@@ -139,7 +139,7 @@
                         },
                         'get_request_data': function() {
                             // We convert the config vars into a
-                            // dictionary: {field: [values]}
+                            // dictionary: {var_key: [selected_value/key, ...]}
                             var ret = {};
                             $.each(this.vars, function(idx, avar) {
                                 var values = [];

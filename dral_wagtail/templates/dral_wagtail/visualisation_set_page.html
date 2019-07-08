@@ -7,7 +7,7 @@
     <ul>
       {% for viz in visualisations %}
         {% if viz.type == 'featured' %}
-          <li><a href="?viz={{ viz.key }}">{{ viz.key }}</a></li>
+          <li><a href="?viz={{ viz.key }}">{{ viz.name }}</a></li>
         {% endif %}
       {% endfor %}
     </ul>
@@ -16,7 +16,7 @@
     <ul>
       {% for viz in visualisations %}
         {% if viz.type == 'exploratory' %}
-          <li><a href="?viz={{ viz.key }}">{{ viz.key }}</a></li>
+          <li><a href="?viz={{ viz.key }}">{{ viz.name }}</a></li>
         {% endif %}
       {% endfor %}
     </ul>
