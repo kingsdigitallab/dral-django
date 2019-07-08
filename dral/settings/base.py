@@ -368,8 +368,8 @@ DRAL_VIZS = OrderedDict([
     }],
 ])
 
-WEBPATH_COOKIE_POLICY = 'cookie-policy/'
-WEBPATH_ACCESSIBILITY_STATEMENT = 'accessibility-statement/'
+WEBPATH_COOKIE_POLICY = '/cookie-policy/'
+WEBPATH_ACCESSIBILITY_STATEMENT = '/accessibility-statement/'
 URL_GITHUB = 'https://github.com/kingsdigitallab/dral-django'
 
 CONTEXT_VARIABLES = [
