@@ -14,7 +14,8 @@ def load_json_content(apps, schema_editor):
                 'Could not decrypt research data.'
                 ' Run `./kdlencrypt init` for more info'
             )
-    if 1:
+    if 0:
+        # GN: disabled as the db schema has evolved since the fixture was saved
         management.call_command(
             'loaddata',
             'research_data/private/all_strings_1.0.json',
