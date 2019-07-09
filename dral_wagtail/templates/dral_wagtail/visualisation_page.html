@@ -5,14 +5,14 @@
     <header>
       <nav aria-label="Breadcrumb" class="breadcrumb">
         <ul>
-          <li><a href="/">DRaL</a></li>
+          <li><abbrv title="Distant Reading Across Languages"><a href="/"><strong>DRaL</strong></a></abbrv></li>
           <li><a href="/visualisations/">Visualisations</a></li>
           <li><span class="page-title">{{ page.title }}</span></li>
         </ul>
       </nav>
       <nav aria-label="Actions" class="viz-actions">
         <ul>
-          <li><a class="toggle-settings button" href="#">settings</a></li>
+          <li><a class="toggle-settings button" href="#">Settings</a></li>
         </ul>
       </span>
     </header>
@@ -20,13 +20,13 @@
 
 {% block title %}{% endblock %}
 {% block main %}
-    {{ block.super }}
+{{ block.super }}
 
-    {% include 'dral_visualisations/fragments/settings.html' %}
+{% include 'dral_visualisations/fragments/settings.html' %}
 
-    <div id="visualisation">
-        Loading visualisation...
-    </div>
+<div id="visualisation">
+    Loading visualisation...
+</div>
 {% endblock %}
 
 {% block footer_wrapper %}

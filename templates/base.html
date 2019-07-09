@@ -10,52 +10,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   {% compress css %}
-    <link rel="stylesheet" type="text/x-scss" href="{% static 'scss/main.scss' %}">
+  <link rel="stylesheet" type="text/x-scss" href="{% static 'scss/main.scss' %}">
   {% endcompress %}
+  <link href="https://fonts.googleapis.com/css?family=Lora:400,400i,700,700i&display=swap&subset=cyrillic,cyrillic-ext,latin-ext" rel="stylesheet">
 </head>
 <body>
   {% block header %}
-    <header>
-      {% include 'includes/header.html' %}
-      <nav class="menu">
-        {% include 'includes/navigation.html' %}
-      </nav>
-    </header>
+  <header>
+    {% include 'includes/header.html' %}
+  </header>
+  <nav class="menu">
+    {% include 'includes/navigation.html' %}
+  </nav>
   {% endblock %}
 
   <main>
     {% block title %}<h2>{{ page.title }}</h2>{% endblock %}
     {% block main %}
-        {% if page.has_body %}
-            {{ page.body|richtext }}
-        {% endif %}
+    {% if page.has_body %}
+    {{ page.body|richtext }}
+    {% endif %}
     {% endblock %}
   </main>
 
   {% block footer_wrapper %}
-    <footer>
-      {% block footer %}
-          {% include 'includes/footer.html' %}
-      {% endblock %}
-    </footer>
+  <footer>
+    {% block footer %}
+    {% include 'includes/footer.html' %}
+    {% endblock %}
+  </footer>
   {% endblock %}
 
   {% compress js %}
-    <script src="{% static 'vendor/jquery/dist/jquery.min.js' %}"></script>
-
-    <script src="{% static 'js/main.js' %}"></script>
+  <script src="{% static 'vendor/jquery/dist/jquery.min.js' %}"></script>
+  <script src="{% static 'js/main.js' %}"></script>
   {% endcompress %}
 
   {% block footer_scripts %}{% endblock %}
 
   {% compress js %}
-    {% if not DEBUG and GA_ID %}
-      <script src="{% static 'js/google_analytics.js' %}"></script>
-      <script>
-        ga('create', '{{ GA_ID }}', 'auto');
-        ga('send', 'pageview');
-      </script>
-    {% endif %}
+  {% if not DEBUG and GA_ID %}
+  <script src="{% static 'js/google_analytics.js' %}"></script>
+  <script>
+    ga('create', '{{ GA_ID }}', 'auto');
+    ga('send', 'pageview');
+  </script>
+  {% endif %}
   {% endcompress %}
 </body>
 </html>
