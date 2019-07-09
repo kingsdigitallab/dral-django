@@ -1,12 +1,10 @@
 {% load wagtailcore_tags dral_wagtail_tags %}
 
 {% block main_menu %}
-
-  {% get_site_root as site_root %}
-  <ul>
+{% get_site_root as site_root %}
+<ul>
     {% for child in site_root.get_children.live.in_menu %}
-        <li><a href="{% pageurl child %}">{{ child.title }}</a></li>
+    <li><a href="{% pageurl child %}"{% if page.url == child.url %} class="active"{% endif %}>{{ child.title }}</a></li>
     {% endfor %}
-  </ul>
-
+</ul>
 {% endblock %}
