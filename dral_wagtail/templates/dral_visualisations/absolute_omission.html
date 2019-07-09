@@ -5,8 +5,8 @@
     <div id="infobox">
         <template v-if="d.lemma">
             <div>
-              Repeteme "{{ d.lemma }}" 
-              occurs {{ d.freq }} times in English 
+              Repeteme "{{ d.lemma }}"
+              occurs {{ d.freq }} times in English
               and is omitted {{ d.omitted }} times ({{ d.omitted | percent(d.freq) }} %)
               in {{ d.text_label }}
             </div>
@@ -15,10 +15,9 @@
 
   <div class="viz-introduction">
     For each
-    <a href="#repeteme" title="a group of word forms that are related in terms of their written and phonological resemblance">repeteme</a> 
-    in the English edition of 
-    <a href="https://en.wikipedia.org/wiki/The_Sound_and_the_Fury" title="A novel written by William Faulkner and published in 1929.">the Sound and the Fury</a> 
-    the proportion of written occurences omitted from a translation.
+    <a href="#repeteme" title="a group of word forms that are related in terms of their written and phonological resemblance">repeteme</a>,
+    the number of omissions in a translation over the number of occurrences in the English edition of
+    <a href="https://en.wikipedia.org/wiki/The_Sound_and_the_Fury" title="A novel written by William Faulkner and published in 1929.">the Sound and the Fury</a>.
   </div>
 
   <div class="charts-wrapper relative-omission-gn">
@@ -35,7 +34,5 @@
 
 <script>
     window.vis_data = {{ vis_data|json }};
-    {# % include "dral_visualisations/relative_omission.js" % #}
-    relative_omission();
+    absolute_omission();
 </script>
-<!-- script type="text/javascript" src="/static/js/relative_omission.js"></script -->

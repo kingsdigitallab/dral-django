@@ -294,6 +294,9 @@ h2 {
       &.fr .bar {
         fill: #1d7bc3;
       }
+      rect.bar.freq {
+        fill: lightgrey;
+      }
 
       .axis-x {
         text {

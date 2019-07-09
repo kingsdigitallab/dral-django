@@ -342,6 +342,11 @@ DRAL_VIZS = OrderedDict([
         'visibility': 'liv',
         'name': 'Relative omissions',
     }],
+    ['absolute_omission', {
+        'type': 'exploratory',
+        'visibility': 'dev',
+        'name': 'Absolute omissions',
+    }],
     ['relative_omission_old', {
         'type': 'exploratory',
         'visibility': None,
