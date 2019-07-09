@@ -12,15 +12,16 @@
   {% compress css %}
   <link rel="stylesheet" type="text/x-scss" href="{% static 'scss/main.scss' %}">
   {% endcompress %}
+  <link href="https://fonts.googleapis.com/css?family=Lora:400,400i,700,700i&display=swap&subset=cyrillic,cyrillic-ext,latin-ext" rel="stylesheet">
 </head>
 <body>
   {% block header %}
   <header>
     {% include 'includes/header.html' %}
-    <nav class="menu">
-      {% include 'includes/navigation.html' %}
-    </nav>
   </header>
+  <nav class="menu">
+    {% include 'includes/navigation.html' %}
+  </nav>
   {% endblock %}
 
   <main>

@@ -15,7 +15,7 @@ $primary-color: #658f73;
 
 body {
   color: $body-text-color;
-  font-family: sans-serif;
+  font-family: 'Lora', serif;
   margin: 0;
 }
 
@@ -47,7 +47,7 @@ button,
   padding: 8px 16px;
   // GN: added this to visually distinguish primary menu items
   // from buttons / actions.
-  box-shadow: 0.2em 0.2em 0.3em #888;
+  // box-shadow: 0.2em 0.2em 0.3em #888;
 
   &:hover {
     background-color: darken($primary-color, 10%);
@@ -58,54 +58,65 @@ button,
 footer,
 header,
 main {
-  padding: 10px 20px;
+  padding: 16px 24px;
 }
 
 footer {
-  border-top: 1px solid darkgrey;
+  border-top: 1px solid lighten($primary-color, 40%);
+}
+
+footer,
+header {
+  background: lighten($light-gray, 7%);
 }
 
 header {
-  display: block;
+  border-bottom: 1px solid $primary-color;
 }
 
-h1, nav.menu {
+h1 {
+  font-weight: 400;
   margin: 0;
-  a {
-    padding: 10px;
-    display: block;
+
+  a,
+  a:visited {
+    color: $primary-color;
   }
 }
 
 nav {
   ul {
-    list-style-type: none;
+    list-style: none;
     padding-left: 0;
     margin: 0;
   }
 
   &.menu {
+    margin: 0 24px;
+
     ul {
       overflow: hidden;
 
       li {
         background: $primary-color;
+        border-right: 1px solid white;
         color: white;
         display: inline-block;
         float: left;
-        border-right: 1px solid white;
 
         a {
+          border-bottom: 5px solid $primary-color;
           color: white;
+          display: block;
+          padding: 8px 8px 3px;
 
           &:hover {
             background: darken($primary-color, 20%);
           }
-        }
 
-        // GN: increase space between items
-        &:not(:first-child) {
-          margin-left: 1rem;
+          &.active {
+            border-bottom: 5px solid darken($primary-color, 20%);
+          }
         }
       }
     }
@@ -151,6 +162,7 @@ nav {
       height: 1em;
     }
   }
+
   &.breadcrumb {
     li:not(:first-child) {
       &:before {
@@ -164,7 +176,10 @@ nav {
 h2 {
   clear: both;
   margin: 0;
-  padding: 10px;
+}
+
+.logo img {
+  max-width: 150px;
 }
 
 /* VISUALISATIONS */
@@ -530,7 +545,27 @@ body {
 }
 
 a.toggle-settings {
-  padding: 5px 16px;
+  background-color: $accent-color;
+  padding: 5px 12px 5px 8px;
+
+  &:before {
+    background-image: url(/static/images/cog-64.png);
+    background-repeat: no-repeat;
+    background-size: 14px;
+    content: '';
+    display: inline-block;
+    height: 16px;
+    width: 20px;
+  }
+
+  &:focus,
+  &:visited {
+    color: white;
+  }
+
+  &:hover {
+    background-color: darken($accent-color, 20%);
+  }
 }
 
 .setting-input {
