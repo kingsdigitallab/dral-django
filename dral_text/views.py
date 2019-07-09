@@ -5,6 +5,10 @@ from .management.commands.drtext import Command
 from dral_text.models import Text, Chapter, Occurence, Sentence, Lemma,\
     SheetStyle
 from django.contrib.admin.views.decorators import staff_member_required
+from django.http.response import JsonResponse
+from django.core.paginator import Paginator
+from _collections import OrderedDict
+from django.urls.base import reverse
 
 
 def get_context():
@@ -145,5 +149,108 @@ def handle_uploaded_file(f, import_handler):
     except Exception as e:
         # Coding error, unexpected
         ret['error'] = '{} ({})'.format(e, e.__class__.__name__)
+
+    return ret
+
+
+def get_filters_from_request(request, param_filters):
+    '''returns a Django QuerySet filter dictionary
+    from a http request and a dictionary mapping arguments to filters
+    '''
+    ret = {}
+    for param, filter in param_filters.items():
+        values = request.GET.get(param, '')
+
+        if param == 'repeteme' and values == 'ALL':
+            continue
+
+        if values:
+            if ',' in values:
+                ret[filter + '__in'] = values.split(',')
+            else:
+                ret[filter] = values
+
+    return ret
+
+
+def view_occurrences_api(request):
+    ret = request_occurrences_api(request)
+    return JsonResponse(ret)
+
+
+def request_occurrences_api(request):
+    per_page = 100
+    page_index = int(request.GET.get('page', 1))
+
+    data = []
+    meta = {}
+    res = OrderedDict([
+        ['jsonapi', {'version': '1.1'}],
+        ['meta', meta],
+        ['links', {}],
+        ['data', data],
+        ['errors', []],
+    ])
+
+    param_filters = {
+        'text': 'text__code',
+        'repeteme': 'lemma__string',
+        'chapter': 'chapter__slug',
+    }
+    filters = get_filters_from_request(request, param_filters)
+    occs = Occurence.objects.filter(**filters)
+
+    occs = occs.select_related('chapter', 'lemma', 'text')
+
+    occs = occs.order_by('chapter__display_order', 'lemma',
+                         'text', 'sentence_index', 'id')
+
+    pages = Paginator(occs, per_page)
+    page = pages.get_page(page_index)
+    meta['totalPages'] = pages.count
+
+    res['links'] = get_links_from_api_request(
+        request, param_filters, page_index, pages)
+
+    for occ in page:
+        occ_dict = {
+            'type': 'occurrences',
+            'id': str(occ.id),
+            'attributes': {
+                'string': occ.string,
+                'chapter': occ.chapter.slug,
+                'repeteme': occ.lemma.string,
+                'text': occ.text.code,
+                'sentence': occ.sentence_index,
+            }
+        }
+        data.append(occ_dict)
+
+    return res
+
+
+def get_links_from_api_request(request, param_filters, page_index, pages):
+    base_url = '{}://{}{}?{}'.format(
+        request.scheme,
+        request.get_host(),
+        reverse('api_occurrences'),
+        '&'.join([
+            '{}={}'.format(
+                k, v
+            )
+            for k, v
+            in request.GET.items()
+            if k in param_filters.keys()
+        ])
+    )
+    ret = {
+        'first': base_url + '&page={}'.format(1),
+        'self': base_url + '&page={}'.format(page_index),
+        'last': base_url + '&page={}'.format(pages.count),
+    }
+    if page_index > 1:
+        ret['previous'] = base_url + '&page={}'.format(page_index - 1)
+    if page_index < pages.count - 1:
+        ret['next'] = base_url + '&page={}'.format(page_index + 1)
 
     return ret

@@ -2,11 +2,23 @@
 {% load staticfiles compress wagtailcore_tags dral_wagtail_tags %}
 
 {% block header %}
-{% include 'includes/header.html' %}
+    <header>
+      <nav aria-label="Breadcrumb" class="breadcrumb">
+        <ul>
+          <li><a href="/">DRaL</a></li>
+          <li><a href="/visualisations/">Visualisations</a></li>
+          <li><span class="page-title">{{ page.title }}</span></li>
+        </ul>
+      </nav>
+      <nav aria-label="Actions" class="viz-actions">
+        <ul>
+          <li><a class="toggle-settings button" href="#">settings</a></li>
+        </ul>
+      </span>
+    </header>
 {% endblock %}
 
 {% block title %}{% endblock %}
-
 {% block main %}
 {{ block.super }}
 
@@ -28,7 +40,7 @@
     {# D3Js Library - Link to ext file for now #}
     <script src="https://d3js.org/d3.v5.min.js"></script>
 
-    <script type="text/javascript" src="/static/js/relative_omission_gn.js"></script>
+    <script type="text/javascript" src="/static/js/relative_omission.js"></script>
 
     {% block tooltip %}
 
@@ -54,20 +66,7 @@
         window.info_box_vue = null;
 
         function infobox_dict(dict) {
-            // console.log(dict);
             Vue.set(window.info_box_vue, 'd', dict);
-        }
-        function infobox_dict_old(dict) {
-            var message = '';
-            $.each(dict, function(k, v) {
-                if (message.length) message += '; ';
-                message += k + ': ' + v;
-            });
-            infobox(message);
-        }
-        function infobox_old(message) {
-            // $('#infobox').html(message);
-            // $('#infobox').toggle(!!message);
         }
 
         function round(value) {
@@ -101,6 +100,7 @@
             var $fragment = $('#visualisation');
             var config = {{config|json}};
             var vue_config = new_vue_config(config);
+            var $json_link = $('#json-link');
 
             $win.on('keyup', function(ev) {
                 if (ev.which == 27) {
@@ -139,7 +139,7 @@
                         },
                         'get_request_data': function() {
                             // We convert the config vars into a
-                            // dictionary: {field: [values]}
+                            // dictionary: {var_key: [selected_value/key, ...]}
                             var ret = {};
                             $.each(this.vars, function(idx, avar) {
                                 var values = [];
@@ -186,17 +186,27 @@
                     replace_fragment(data);
                     $fragment.stop(true, true).css('opacity', 1);
 
-                    window.info_box_vue = new Vue({
-                        el: '#infobox',
-                        data: {
-                            d: {},
-                        },
-                        filters: {
-                            percent: function(val, total) {
-                                return Math.round((val / total) * 1000) / 10;
+                    if ($('#infobox').length) {
+                        window.info_box_vue = new Vue({
+                            el: '#infobox',
+                            data: {
+                                d: {},
+                            },
+                            filters: {
+                                percent: function(val, total) {
+                                    return Math.round((val / total) * 1000) / 10;
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
+
+                    if ($json_link.length) {
+                        $json_link.attr(
+                            'href',
+                            '/api/v1/occurrences/'+window.location.search
+                        );
+                    }
+                    $json_link.toggleClass('hidden', $json_link.length < 1);
                 });
             }
             request_fragment();

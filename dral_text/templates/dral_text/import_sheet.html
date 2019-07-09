@@ -1,16 +1,6 @@
 {% extends "base.html" %}
 {% load wagtailcore_tags dral_wagtail_tags %}
 
-{% block header %}
-    <header>
-        <a href="/">DRaL</a>
-        &gt;
-        <a href="/import/">Data management</a>
-        &gt;
-        <span class="page-title">{{ page.title }}</span>
-    </header>
-{% endblock %}
-
 {% block main %}
 
     {% if error %}

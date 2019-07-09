@@ -1,50 +1,44 @@
 {% extends "base.html" %}
 {% load wagtailcore_tags dral_wagtail_tags %}
 
-{% block header %}
-    <header>
-        <a href="/">DRaL</a>
-        &gt;
-        <a href="/import/">Data management</a>
-    </header>
-{% endblock %}
-
 {% block main %}
 
-<h2>Tasks</h2>
+  <nav class="data-actions">
+    <ul>
+      <li><a href="strings/">Import strings</a></li>
+      <li><a href="sentences/">Import sentences</a></li>
+      <li><a href="texts/">Import text metadata</a></li>
+      <li><a href="/wagtail/dral_text/text/">Edit text metadta</a></li>
+      <li><a href="remove/">Remove</a></li>
+    </ul>
+  <nav>
 
-<h3><a href="strings/">Import strings</a></h3>
-<h3><a href="sentences/">Import sentences</a></h3>
-<h3><a href="texts/">Import text metadata</a></h3>
-<h3><a href="/admin/dral_text/text/">Edit text metadta</a></h3>
-<h3><a href="remove/">Remove</a></h3>
-
-<h2>Summary</h2>
-<table class="database-stats">
-    <thead>
-    <tr>
-        <td>Text</td>
-        {% for chapter in chapters %}
-            <td colspan="2">{{ chapter.name }}</td>
-        {% endfor %}
-    </tr>
-    <tr>
-        <td></td>
-        {% for chapter in chapters %}
-            <td>Rep.</td>
-            <td>Sent.</td>
-        {% endfor %}
-    </tr>
-    </thead>
-    <tbody>
-        {% for text in stats %}
-            <tr>
-                {% for v in text %}
-                    <td>{{v}}</td>
-                {% endfor %}
-            </tr>
-        {% endfor %}
-    </tbody>
-</table>
+  <h2>Database content</h2>
+  <table class="database-stats">
+      <thead>
+      <tr>
+          <td>Text</td>
+          {% for chapter in chapters %}
+              <td colspan="2">{{ chapter.name }}</td>
+          {% endfor %}
+      </tr>
+      <tr>
+          <td></td>
+          {% for chapter in chapters %}
+              <td>Rep.</td>
+              <td>Sent.</td>
+          {% endfor %}
+      </tr>
+      </thead>
+      <tbody>
+          {% for text in stats %}
+              <tr>
+                  {% for v in text %}
+                      <td>{{v}}</td>
+                  {% endfor %}
+              </tr>
+          {% endfor %}
+      </tbody>
+  </table>
 
 {% endblock %}
