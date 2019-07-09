@@ -6,6 +6,70 @@ function log() {
 
 function relative_omission() {
     "use strict";
+    function draw_datum(selection, g_scale_x, scale_y) {
+        selection.append('rect')
+            .classed('bar', true)
+            .attr('x', d => g_scale_x(d.lemma))
+            .attr('y', scale_y(0.0))
+            .attr('width', g_scale_x.bandwidth())
+            .attr('height', d => scale_y(d.omitted / d.freq) - scale_y(0))
+        ;
+    }
+
+    function get_domain_y() {
+        return [0, 1.0];
+    }
+
+    function axis_left(scale_y) {
+        return window.d3
+          .axisLeft(scale_y)
+          .ticks(3, '%')
+        ;
+    }
+
+    return omission_viz(draw_datum, get_domain_y, axis_left);
+}
+
+function absolute_omission() {
+    "use strict";
+
+    var max_y = 50.0;
+
+    function draw_datum(selection, g_scale_x, scale_y) {
+        selection.append('rect')
+            .classed('bar', true)
+            .classed('freq', true)
+            .attr('x', d => g_scale_x(d.lemma))
+            .attr('y', scale_y(0.0))
+            .attr('width', g_scale_x.bandwidth())
+            .attr('height', d => scale_y(Math.min(d.freq, max_y)) - scale_y(0))
+        ;
+        selection.append('rect')
+            .classed('bar', true)
+            .classed('omis', true)
+            .attr('x', d => g_scale_x(d.lemma))
+            .attr('y', scale_y(0.0))
+            .attr('width', g_scale_x.bandwidth())
+            .attr('height', d => scale_y(Math.min(d.omitted, max_y)) - scale_y(0))
+        ;
+    }
+
+    function axis_left(scale_y) {
+        return window.d3
+          .axisLeft(scale_y)
+          .ticks(10)
+        ;
+    }
+
+    function get_domain_y() {
+        return [0, max_y];
+    }
+
+    return omission_viz(draw_datum, get_domain_y, axis_left);
+}
+
+function omission_viz(draw_datum, get_domain_y, axis_left) {
+    "use strict";
 
     // https://observablehq.com/@d3/zoomable-bar-chart
 
@@ -106,7 +170,7 @@ function relative_omission() {
         // scales & axes
         // var scale_y = d3.scaleLinear().domain([0, 1.0]).range([dims.h, 0]);
         var scale_y = d3.scaleLinear()
-            .domain([0, 1.0])
+            .domain(get_domain_y())
             .range([dims.extent[0][1], dims.extent[1][1]])
         ;
         if (g_scale_x === null) {
@@ -126,12 +190,7 @@ function relative_omission() {
         var bars = chart_group.append('g').classed('bars', true);
         bars.selectAll('.bar')
             .data(data).enter()
-            .append('rect')
-                .classed('bar', true)
-                .attr('x', d => g_scale_x(d.lemma))
-                .attr('y', scale_y(0.0))
-                .attr('width', g_scale_x.bandwidth())
-                .attr('height', d => scale_y(d.omitted / d.freq) - scale_y(0))
+            .call(draw_datum, g_scale_x, scale_y)
         ;
 
         // vertical "cursor" for the hovered bar
@@ -191,8 +250,7 @@ function relative_omission() {
 
         var axis_y = chart_group.append('g').classed('axis-y', true)
             .attr('transform', 'translate('+margins.left+', 0)')
-            .call(d3.axisLeft(scale_y)
-                .ticks(3, '%')
+            .call(axis_left(scale_y)
                 // TODO: add more ticks on Y axes but d3.js won't listen!
                 //.tickValues([0, 0.25, 0.5, 0.75, 1])
                 //.tickFormat(d3.format('%'))

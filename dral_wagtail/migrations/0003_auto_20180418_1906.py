@@ -9,7 +9,7 @@ from wagtail.core.models import Site
 def load_json_content(apps, schema_editor):
     from django.core import management
 
-    if 1:
+    if 0:
         # remove all existing content types to avoid duplicate keys
         ContentType = apps.get_model("contenttypes", "ContentType")
         for ct in ContentType.objects.all():

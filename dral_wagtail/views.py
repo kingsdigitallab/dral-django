@@ -444,6 +444,9 @@ class VisualisationView(object):
         ]
         self.context['vis_data'] = OrderedDict(data)
 
+    def visualisation_absolute_omission(self):
+        return self.visualisation_relative_omission()
+
     def visualisation_relative_omission(self):
         '''
         For each unique (lemma, lg) pair we get:

@@ -342,6 +342,11 @@ DRAL_VIZS = OrderedDict([
         'visibility': 'liv',
         'name': 'Relative omissions',
     }],
+    ['absolute_omission', {
+        'type': 'exploratory',
+        'visibility': 'dev',
+        'name': 'Absolute omissions',
+    }],
     ['relative_omission_old', {
         'type': 'exploratory',
         'visibility': None,
@@ -368,8 +373,8 @@ DRAL_VIZS = OrderedDict([
     }],
 ])
 
-WEBPATH_COOKIE_POLICY = 'cookie-policy/'
-WEBPATH_ACCESSIBILITY_STATEMENT = 'accessibility-statement/'
+WEBPATH_COOKIE_POLICY = '/cookie-policy/'
+WEBPATH_ACCESSIBILITY_STATEMENT = '/accessibility-statement/'
 URL_GITHUB = 'https://github.com/kingsdigitallab/dral-django'
 
 CONTEXT_VARIABLES = [

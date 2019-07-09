@@ -14,13 +14,14 @@ def load_json_content(apps, schema_editor):
                 'Could not decrypt research data.'
                 ' Run `./kdlencrypt init` for more info'
             )
-    if 1:
+    if 0:
+        # GN: disabled as the db schema has evolved since the fixture was saved
         management.call_command(
             'loaddata',
             'research_data/private/all_strings_1.0.json',
             verbosity=0
         )
-    if 1:
+    if 0:
         VisualisationPage = apps.get_model("dral_wagtail", "VisualisationPage")
         page = VisualisationPage.objects.get(id=7)
         page.title = 'Distribution of Relative Omission'
