@@ -31,6 +31,21 @@ OR
 from django.utils.text import slugify
 
 
+# class Visualisation(models.Model):
+#     '''
+#     DRAL_VIZS = OrderedDict([
+#         ['relative_omission', {
+#             'type': 'featured',
+#             'visibility': 'liv',
+#             'name': 'Relative omissions',
+#         }],
+#     '''
+#     key = models.CharField(max_length=30, unique=True)
+#     name = models.CharField(max_length=30, unique=True)
+#     type = models.CharField(max_length=30, choices=[])
+#     visibility = models.Ch
+#     short_description = models.CharField(max_length=30, unique=True)
+
 class Lemma(models.Model):
     '''Represents a lemma in English'''
     string = models.CharField(max_length=20)

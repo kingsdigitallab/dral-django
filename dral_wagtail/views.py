@@ -8,7 +8,7 @@ from django.http.response import JsonResponse
 
 class Visualisation(object):
     '''
-    Encapsulate the metadata about a visulisation.
+    Encapsulate the metadata about a visualisation.
 
     self.viz is a dictionary of metadata
 

@@ -1,6 +1,6 @@
 from wagtail.contrib.modeladmin.options import (
     ModelAdmin, modeladmin_register)
-from .models import Text
+from .models import Text, Chapter
 
 
 class TextAdmin(ModelAdmin):
@@ -20,3 +20,18 @@ class TextAdmin(ModelAdmin):
 
 
 modeladmin_register(TextAdmin)
+
+
+class ChapterAdmin(ModelAdmin):
+    model = Chapter
+    menu_label = 'Chapter'  # ditch this to use verbose_name_plural from model
+    menu_icon = 'pilcrow'  # change as required
+    menu_order = 210  # will put in 3rd place (000 being 1st, 100 2nd)
+    add_to_settings_menu = False  #
+    # or True to exclude pages of this type from Wagtail's explorer view
+    exclude_from_explorer = False
+    list_display = ('id', 'name', 'slug', 'display_order')
+    list_filter = ()
+
+
+modeladmin_register(ChapterAdmin)
