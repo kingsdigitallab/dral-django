@@ -83,10 +83,17 @@ class VisualisationView(object):
             [ch.slug, ch] for ch in
             Chapter.objects.all().order_by('display_order')
         ])
+
+        texts = Text.objects.exclude(
+            code__iexact=settings.DRAL_REFERENCE_LANGUAGE
+        )
+        if not settings.DEBUG:
+            texts = texts.exclude(is_public=False)
+        texts = texts.order_by('code')
         self.codes_text = OrderedDict([
-            [text.code, text] for text in
-            Text.objects.exclude(code__iexact=settings.DRAL_REFERENCE_LANGUAGE)
-            .order_by('code')
+            [text.code, text]
+            for text
+            in texts
         ])
 
     def process_request(self, visualisation_code, context, request):
