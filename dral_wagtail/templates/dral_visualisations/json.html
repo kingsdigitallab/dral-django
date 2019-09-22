@@ -1,5 +1,9 @@
 {% load dral_wagtail_tags %}
 
+<div class="viz-introduction">
+  {{ viz.short_description_html|safe }}
+</div>
+
 <h2>Request to the Web API</h2>
 <p>
   <a href="{{ api_link }}">{{ api_link }}</a>

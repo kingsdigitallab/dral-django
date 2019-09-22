@@ -1,16 +1,20 @@
 {% load dral_wagtail_tags %}
 
 {# {language: "LT", ratio_omitted: 0, lemma: "PACKAGE", omitted: 0, freq: 3} #}
+<div class="viz-introduction">
+  {{ viz.short_description_html|safe }}
+</div>
+
 {% verbatim %}
-    <div id="infobox">
-        <template v-if="d.language">
-            <div>
-              Repeteme: {{ d.lemma }};
-              Frequency (EN): {{ d.freq }};
-              Omissions ({{ d.language }}): {{ d.omitted }} ({{ d.omitted_pc }} %);
-            </div>
-        </template>
-    </div>
+  <div id="infobox">
+      <template v-if="d.language">
+          <div>
+            Repeteme: {{ d.lemma }};
+            Frequency (EN): {{ d.freq }};
+            Omissions ({{ d.language }}): {{ d.omitted }} ({{ d.omitted_pc }} %);
+          </div>
+      </template>
+  </div>
 
   <div class="svg-viz relative-omission">
   </div>

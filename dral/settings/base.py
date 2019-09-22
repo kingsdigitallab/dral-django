@@ -14,7 +14,6 @@ import os
 
 from django_auth_ldap.config import LDAPGroupQuery
 from kdl_ldap.settings import *  # noqa
-from collections import OrderedDict
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
@@ -323,55 +322,6 @@ WAGTAILSEARCH_BACKENDS = {
 
 # code of the language of the original work
 DRAL_REFERENCE_LANGUAGE = 'en'
-
-'''
-List of visualisations, in display order.
-Format: [SLUG, METADATA]
-SLUG: is a web slug that MUST match the method name
-    dral_wagtail.views.Visualisation.visualisation_SLUG
-METADATA: if a dictionary with the following keys:
-    visibility:
-        'liv': visible on all sites
-        'dev': visible on dev / local site
-        None: never visible
-USE Visualisations / Visualisation classes to manipulate this dictionary
-'''
-DRAL_VIZS = OrderedDict([
-    ['relative_omission', {
-        'type': 'featured',
-        'visibility': 'liv',
-        'name': 'Relative omissions',
-    }],
-    ['absolute_omission', {
-        'type': 'exploratory',
-        'visibility': 'dev',
-        'name': 'Absolute omissions',
-    }],
-    ['relative_omission_old', {
-        'type': 'exploratory',
-        'visibility': None,
-    }],
-    ['relative_omission_calendar', {
-        'type': 'exploratory',
-        'visibility': 'liv',
-        'name': 'Relative omissions (calendar)',
-    }],
-    ['variants_progression', {
-        'type': 'exploratory',
-        'visibility': 'liv',
-        'name': 'Variant progression',
-    }],
-    ['tabular', {
-        'type': 'exploratory',
-        'visibility': 'liv',
-        'name': 'Tabular',
-    }],
-    ['json', {
-        'type': 'featured',
-        'visibility': 'liv',
-        'name': 'JSON',
-    }],
-])
 
 WEBPATH_COOKIE_POLICY = '/cookie-policy/'
 WEBPATH_ACCESSIBILITY_STATEMENT = '/accessibility-statement/'

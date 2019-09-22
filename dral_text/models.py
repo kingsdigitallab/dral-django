@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 import re
 
 '''
@@ -31,20 +32,69 @@ OR
 from django.utils.text import slugify
 
 
-# class Visualisation(models.Model):
-#     '''
-#     DRAL_VIZS = OrderedDict([
-#         ['relative_omission', {
-#             'type': 'featured',
-#             'visibility': 'liv',
-#             'name': 'Relative omissions',
-#         }],
-#     '''
-#     key = models.CharField(max_length=30, unique=True)
-#     name = models.CharField(max_length=30, unique=True)
-#     type = models.CharField(max_length=30, choices=[])
-#     visibility = models.Ch
-#     short_description = models.CharField(max_length=30, unique=True)
+class Visualisation(models.Model):
+    '''
+    DRAL_VIZS = OrderedDict([
+        ['relative_omission', {
+            'type': 'featured',
+            'visibility': 'liv',
+            'name': 'Relative omissions',
+        }],
+    '''
+    key = models.CharField(
+        max_length=30, unique=True,
+        help_text='An internal code for this visualisation'
+        ', please DO NOT edit',
+    )
+    name = models.CharField(
+        max_length=30, unique=True,
+        help_text='Public name of this visualisation',
+    )
+    type = models.CharField(
+        max_length=30,
+        choices=[
+            ('featured', 'Featured'),
+            ('exploratory', 'Exploratory'),
+        ],
+        default='exploratory',
+        help_text='Select "Featured" for more polished / final visualisation',
+    )
+    visibility = models.CharField(
+        max_length=30,
+        choices=[
+            ('dev', 'Development'),
+            ('liv', 'Live'),
+        ],
+        default='dev',
+        help_text='If "Live" the viz is publicly visible',
+    )
+    short_description = models.TextField(
+        blank=True, null=False,
+        help_text='''Short description on top of the visualisation.
+        Ideally one sentence. You can insert links to keep things concise.
+        Formatting is done by using markdown syntax
+        (https://daringfireball.net/projects/markdown/syntax)
+        '''
+    )
+    display_order = models.IntegerField(
+        default=0,
+        help_text='visualisation with lower number appear first on the site'
+    )
+
+    class Meta:
+        ordering = ['display_order']
+
+    def is_visible(self):
+        visibilities = ['liv']
+        if settings.DEBUG:
+            visibilities.append('dev')
+
+        return self.visibility in visibilities
+
+    def short_description_html(self):
+        import markdown
+        return markdown.markdown(self.short_description)
+
 
 class Lemma(models.Model):
     '''Represents a lemma in English'''
