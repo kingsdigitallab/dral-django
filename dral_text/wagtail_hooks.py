@@ -45,7 +45,7 @@ class VisualisationAdmin(ModelAdmin):
     add_to_settings_menu = False  #
     # or True to exclude pages of this type from Wagtail's explorer view
     exclude_from_explorer = False
-    list_display = ('id', 'name', 'type', 'visibility')
+    list_display = ('id', 'name', 'type', 'display_order', 'visibility')
     list_filter = ()
 
 
