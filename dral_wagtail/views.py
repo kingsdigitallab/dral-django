@@ -8,8 +8,6 @@ from django.http.response import JsonResponse
 
 class Visualisations(object):
 
-    vizs = None
-
     @classmethod
     def get_viz_keys(cls, include_hidden=False):
         return [
@@ -35,15 +33,14 @@ class Visualisations(object):
 
     @classmethod
     def _get_vizs(cls):
-        if cls.vizs is None:
-            from dral_text.models import Visualisation
-            cls.vizs = OrderedDict([
-                [viz.key, viz]
-                for viz
-                in Visualisation.objects.all()
-            ])
+        from dral_text.models import Visualisation
+        ret = OrderedDict([
+            [viz.key, viz]
+            for viz
+            in Visualisation.objects.all()
+        ])
 
-        return cls.vizs
+        return ret
 
 
 class VisualisationConfig():
