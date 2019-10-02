@@ -25,7 +25,7 @@
   {% endblock %}
 
   <main>
-    <h2>{% block title %}{{ page.title }}{% endblock %}</h2>
+    <h1>{% block title %}{{ page.title }}{% endblock %}</h1>
     {% block main %}
     {% if page.has_body %}
     {{ page.body|richtext }}
