@@ -10,6 +10,10 @@ sidx: 943
 word: "ragina"
 {% endcomment %}
 
+<div class="viz-introduction">
+  {{ viz.short_description_html|safe }}
+</div>
+
 {% verbatim %}
     <div id="infobox">
         <template v-if="d.ch">

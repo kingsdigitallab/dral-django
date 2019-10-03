@@ -1,49 +1,12 @@
 from django.shortcuts import render
 from collections import OrderedDict
-from dral_wagtail.api_vars import API_Vars, get_name_from_key
+from dral_wagtail.api_vars import API_Vars
 from dral_text.models import Chapter, Text
 from django.conf import settings
 from django.http.response import JsonResponse
 
 
-class Visualisation(object):
-    '''
-    Encapsulate the metadata about a visulisation.
-
-    self.viz is a dictionary of metadata
-
-    v = Visualisations.get_viz('my_viz')
-    v.name
-    v.key
-    '''
-
-    def __init__(self, viz_key, viz_dict):
-        self.viz = viz_dict
-        self.viz['key'] = viz_key
-        if 'name' not in self.viz:
-            self.viz['name'] = get_name_from_key(viz_key)
-
-    def __getattr__(self, name):
-        if name in self.viz:
-            return self.viz[name]
-        else:
-            return super(Visualisation, self).__getattr__(name)
-
-    def is_visible(self):
-        visibilities = ['liv']
-        if settings.DEBUG:
-            visibilities.append('dev')
-
-        return self.viz['visibility'] in visibilities
-
-
 class Visualisations(object):
-
-    vizs = OrderedDict([
-        [viz_key, Visualisation(viz_key, viz_dict)]
-        for viz_key, viz_dict
-        in settings.DRAL_VIZS.items()
-    ])
 
     @classmethod
     def get_viz_keys(cls, include_hidden=False):
@@ -60,13 +23,24 @@ class Visualisations(object):
 
         return [
             v for v
-            in cls.vizs.values()
+            in cls._get_vizs().values()
             if v.is_visible() in visible
         ]
 
     @classmethod
     def get_viz(cls, viz_key):
-        return cls.vizs[viz_key]
+        return cls._get_vizs()[viz_key]
+
+    @classmethod
+    def _get_vizs(cls):
+        from dral_text.models import Visualisation
+        ret = OrderedDict([
+            [viz.key, viz]
+            for viz
+            in Visualisation.objects.all()
+        ])
+
+        return ret
 
 
 class VisualisationConfig():
@@ -83,10 +57,17 @@ class VisualisationView(object):
             [ch.slug, ch] for ch in
             Chapter.objects.all().order_by('display_order')
         ])
+
+        texts = Text.objects.exclude(
+            code__iexact=settings.DRAL_REFERENCE_LANGUAGE
+        )
+        if not settings.DEBUG:
+            texts = texts.exclude(is_public=False)
+        texts = texts.order_by('code')
         self.codes_text = OrderedDict([
-            [text.code, text] for text in
-            Text.objects.exclude(code__iexact=settings.DRAL_REFERENCE_LANGUAGE)
-            .order_by('code')
+            [text.code, text]
+            for text
+            in texts
         ])
 
     def process_request(self, visualisation_code, context, request):
@@ -98,6 +79,7 @@ class VisualisationView(object):
 
         code = config.get('viz', 1)
         viz = Visualisations.get_viz(code)
+        context['viz'] = viz
 
         template_path = 'dral_visualisations/{}.html'.format(code)
 

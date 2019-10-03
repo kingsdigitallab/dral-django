@@ -3,7 +3,7 @@
 
 {% block main %}
 
-    <h3>Featured</h3>
+    <h2>Featured</h2>
     <ul>
       {% for viz in visualisations %}
         {% if viz.type == 'featured' %}
@@ -12,7 +12,7 @@
       {% endfor %}
     </ul>
 
-    <h3>Exploratory</h3>
+    <h2>Exploratory</h2>
     <ul>
       {% for viz in visualisations %}
         {% if viz.type == 'exploratory' %}

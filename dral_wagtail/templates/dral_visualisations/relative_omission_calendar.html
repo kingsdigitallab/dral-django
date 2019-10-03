@@ -8,17 +8,21 @@ omitted: 0
 ratio_omitted: 0
 {% endcomment %}
 
+<div class="viz-introduction">
+  {{ viz.short_description_html|safe }}
+</div>
+
 {% verbatim %}
-    <div id="infobox">
-        <template v-if="d.lemma">
-            <div>
-              Repeteme "{{ d.lemma }}" 
-              occurs {{ d.freq }} times in English 
-              and is omitted {{ d.omitted }} times ({{ d.omitted | percent(d.freq) }} %)
-              in {{ d.text_label }}
-            </div>
-        </template>
-    </div>
+  <div id="infobox">
+      <template v-if="d.lemma">
+          <div>
+            Repeteme "{{ d.lemma }}"
+            occurs {{ d.freq }} times in English
+            and is omitted {{ d.omitted }} times ({{ d.omitted | percent(d.freq) }} %)
+            in {{ d.text_label }}
+          </div>
+      </template>
+  </div>
 
   <div class="svg-viz">
   </div>

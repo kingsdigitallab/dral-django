@@ -1,4 +1,5 @@
-django<3
+# LEAVE on 2.2.x this is a LTS version
+django<2.3
 django-compressor
 django-extensions
 django-libsass
@@ -13,3 +14,4 @@ django-activecollab-digger
 django-kdl-ldap
 wagtail<3
 
+markdown
