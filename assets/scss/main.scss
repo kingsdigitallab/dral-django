@@ -1,11 +1,14 @@
 /** Your custom scss here **/
 
-$accent-color: #656c8f;
+// $accent-color: #656c8f;
+$accent-color: #4a4f69; // Scores 7.69 on #fafafa
 $body-text-color: #444444;
 $complementary-color: #8f6581;
 $light-gray: #e8e8e8;
-$neutral-color: #8f8865;
-$primary-color: #658f73;
+// $neutral-color: #8f8865;
+$neutral-color: #4e4b38; // Scores 8.42 with #fafafa
+// $primary-color: #658f73;
+$primary-color: #415c4a; // Scores 7.35 with white
 
 *,
 *:before,
@@ -21,7 +24,7 @@ body {
 
 a {
   color: $primary-color;
-  text-decoration: none;
+  // text-decoration: none;
 
   &:focus {
     color: $accent-color;
@@ -29,7 +32,7 @@ a {
 
   &:hover {
     color: darken($primary-color, 20%);
-    text-decoration: underline;
+    // text-decoration: underline;
   }
 
   &:visited {
@@ -59,6 +62,11 @@ footer,
 header,
 main {
   padding: 16px 24px;
+
+  h2, h3 {
+    font-weight: 400;
+    margin: 16px 0 8px;
+  }
 }
 
 footer {
@@ -76,9 +84,14 @@ header {
 
 header {
   border-bottom: 1px solid $primary-color;
+  a {
+    text-decoration: none;
+  }
 }
 
-h1 {
+h1,
+header h2 {
+  font-size: 2rem;
   font-weight: 400;
   margin: 0;
 
@@ -113,6 +126,7 @@ nav {
           color: white;
           display: block;
           padding: 8px 8px 3px;
+          text-decoration: none;
 
           &:hover {
             background: darken($primary-color, 20%);

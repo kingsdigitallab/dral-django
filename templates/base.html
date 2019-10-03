@@ -17,7 +17,7 @@
 <body>
   {% block header %}
   <header>
-    {% include 'includes/header.html' %}
+    <h2>{% include 'includes/header.html' %}</h2>
   </header>
   <nav class="menu">
     {% include 'includes/navigation.html' %}
@@ -25,7 +25,7 @@
   {% endblock %}
 
   <main>
-    <h1>{% block title %}{{ page.title }}{% endblock %}</h1>
+    {% block title %}<h1>{{ page.title }}</h1>{% endblock %}
     {% block main %}
     {% if page.has_body %}
     {{ page.body|richtext }}

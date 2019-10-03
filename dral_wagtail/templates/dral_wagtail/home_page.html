@@ -2,4 +2,13 @@
 
 {% block meta_title %}Home{% endblock %}
 
-{% block title %}Homepage{% endblock %}
+{% block header %}
+<header>
+    <h1>{% include 'includes/header.html' %}</h1>
+</header>
+<nav class="menu">
+    {% include 'includes/navigation.html' %}
+</nav>
+{% endblock %}
+
+{% block title %}{% endblock %}
