@@ -83,7 +83,6 @@ INSTALLED_APPS = [
 INSTALLED_APPS += [    # your project apps here
     'dral_text',
     'dral_wagtail',
-    'activecollab_digger',
     'kdl_ldap',
     'rest_framework',
     'wagtail.core',
@@ -198,7 +197,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.template.context_processors.static',
                 'django.contrib.messages.context_processors.messages',
-                'activecollab_digger.context_processors.activecollab_digger',
                 'dral_wagtail.context_processors.settings',
             ],
         },
@@ -293,11 +291,6 @@ if 'django.contrib.gis' in INSTALLED_APPS:
     db_engine = 'django.contrib.gis.db.backends.postgis'
 
 
-AC_BASE_URL = 'https://app.activecollab.com/148987'
-AC_API_URL = AC_BASE_URL + '/api/v1/'
-AC_PROJECT_ID = 713
-AC_USER = 36
-AC_TOKEN = ''
 AUTH_LDAP_REQUIRE_GROUP = (
     (
         LDAPGroupQuery('cn=kdl-staff,' + LDAP_BASE_OU) |
