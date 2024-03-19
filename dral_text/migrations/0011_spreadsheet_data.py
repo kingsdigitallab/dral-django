@@ -6,7 +6,7 @@ from django.db import migrations
 def load_json_content(apps, schema_editor):
     from django.core import management
 
-    if 1:
+    if 0:
         from subprocess import call
         res = call(['python', 'kdlencrypt.py', 'decrypt'])
         if res != 0:

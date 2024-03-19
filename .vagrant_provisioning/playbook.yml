@@ -19,7 +19,7 @@
   - name: apt | install https transport for apt
     apt:
       pkg: apt-transport-https
-      state: installed
+      state: present
       update_cache: yes
     tags:
       -system
@@ -42,7 +42,7 @@
   - name: apt | install required system packages
     apt:
       pkg: '{{ item }}'
-      state: installed
+      state: present
       update_cache: yes
     with_items: '{{ system_packages }}'
     tags:
@@ -53,39 +53,6 @@
       upgrade: yes
     tags:
       - system
-
-  - name: git-lfs | add git ppa
-    become: yes
-    command: add-apt-repository ppa:git-core/ppa
-    tags:
-      - system
-      - git
-
-  - name: git-lfs | download
-    become: yes
-    get_url:
-      url: '{{ git.url }}'
-      dest: /tmp
-      mode: 0777
-    tags:
-      - system
-      - git
-
-  - name: git-lfs | setup
-    become: yes
-    command: /tmp/script.deb.sh
-    tags:
-      - system
-      - git
-
-  - name: git-lfs | install
-    apt:
-      pkg: git-lfs
-      state: installed
-      update_cache: yes
-    tags:
-      - system
-      - git
 
   - name: zsh | clone oh-my-zsh repo
     git: repo={{ zsh.oh_my_zsh }} dest={{ user_home }}/.oh-my-zsh
@@ -143,23 +110,23 @@
 
   - name: pip | setup virtualenv
     file: path={{ python.virtualenv_location }} state=directory
-  - command: virtualenv {{ python.virtualenv_location }}
+  - command: python -m venv {{ python.virtualenv_location }}
     tags:
       - python
 
-  - name: pip | update setuptools
-    pip:
-      name: setuptools
-      virtualenv: "{{ python.virtualenv_location }}"
-      state: latest
-    tags:
-      - python
+  # - name: pip | update setuptools
+  #   pip:
+  #     name: setuptools
+  #     virtualenv: "{{ python.virtualenv_location }}"
+  #     state: latest
+  #   tags:
+  #     - python
 
   - name: pip | update pip
     pip:
       name: pip
       virtualenv: "{{ python.virtualenv_location }}"
-      state: latest
+      version: 20.3.4
     tags:
       - python
 
