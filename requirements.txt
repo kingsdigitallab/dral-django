@@ -12,6 +12,6 @@ elasticsearch>=5.0.0,<6.0.0
 
 # django-activecollab-digger
 django-kdl-ldap==1.2
-wagtail==2.6.3
+wagtail==4.1.9
 
 markdown==3.1.1
