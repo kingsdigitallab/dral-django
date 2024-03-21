@@ -66,3 +66,10 @@ local.py
 #local_*.py
 logs/
 static/
+
+# KDL
+/media
+/server
+/venv
+
+
