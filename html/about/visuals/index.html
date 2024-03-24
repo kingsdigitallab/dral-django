@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Visuals explained | Distant Reading Across Languages</title>
+  <meta name="author" content="King's Digital Lab">
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="../../static/CACHE/css/output.df098413ee2a.css" type="text/css" />
+  <!-- <link href="https://fonts.googleapis.com/css?family=Lora:400,400i,700,700i&display=swap&subset=cyrillic,cyrillic-ext,latin-ext" rel="stylesheet"> -->
+  <link href="../../static/vendor/google/fonts/lora/google-lora.css" rel="stylesheet">
+</head>
+<body>
+  
+  <header>
+    <h2><a href="../../index.html">
+    Distant Reading across Languages
+</a>
+</h2>
+  </header>
+  <nav class="menu">
+    
+
+
+
+<ul>
+    
+    <li><a href="../../visualisations/index.html">Visualisations</a></li>
+    
+    <li><a href="../index.html">About the Project</a></li>
+    
+</ul>
+
+
+  </nav>
+  
+
+  <main>
+    <h1>Visuals explained</h1>
+    
+<div class="rich-text"><p><a href="../dataset/index.html">Dataset</a> <a href="../repeteme/index.html">Repeteme</a> <a href="../bibliography/index.html">Bibliography</a> <a href="../team/index.html">Team</a></p><p></p><p>This page describes the visuals (see <a href="../../visualisations/index.html">Visualisations</a>) produced by computing the datasets collected from the first and fourth chapters of Faulkner&#x27;s <i>The Sound and the Fury</i>, also known as the Benjy and Dilsey chapters, respectively. Except for the visual of variant progression, they represent the distribution of omissions as well as idiosyncratic patterns of fluctuation that illustrate differences in translatorial response.</p><p>The project was experimental and resulted in a proof of concept in need of further research, design, development, and testing. Therefore, this website features only one visualisation (i.e. ‘Relative Omission’) with the associated JSON export as the main deliverable and presents three other visualisations which were only explored during the development’s iterations, but not refined due to the limitations of time and budget. The data and code of the exploratory visualisations should not be used as reference.</p><p></p><p><a href="../../visualisations/index.html"><b>RELATIVE OMISSIONS</b></a><b> (featured)</b></p><p>The bar plots are designed to represent the distribution of relative omission in each translation. These visuals are modelled on the concept and plots of relative omission produced in the PI&#x27;s <a href="https://kclpure.kcl.ac.uk/portal/files/61485099/2016_Salciute_Civiliene_Gabrielle_0975961_ethesis.pdf">thesis</a> (see p. 92-93). Relative values are calculated as a <i>ratio</i> of the total number of omissions made in a translation to the total of the instances that make up an original repetition string. Blank spaces along the x-axis also represent <i>repetemes</i>. The absence of a bar in colour means that no instance of a <i>repeteme</i> has been lost in a translation.</p><p>The frequency range of repetitions found in the original novel is plotted along the x-axis. In the database (see <a href="../../visualisations/index.html">Tabular</a>), those repetitions are represented by repetition strings as the physical expressions of <i>repetemes</i>, while the labels on the graph are only <i>repeteme</i> <i>pointers</i>. Along the frequency range on the x-axis, the repetition strings are plotted in a sequential manner from the highest to the lowest value, which is the number of repetitions per string, and from the left side to the right side in the same numerical order as they appear in the database.</p><p>The y-axis here is an accurate representation of the level of relative omissions. The graphs summarise the frequencies of omission counted in the translations of two out of four chapters of <i>The Sound and the Fury</i> – that is, the Benjy and the Dilsey chapters. It is possible to view the distribution of omissions by chapter by selecting the name of a narrator in Settings.</p><img alt="Visualisation settings" class="richtext-image full-width" height="406" src="../../media/images/01-visualisation-settings.width-800.png" width="800"><p><i>Fig. 1</i> Available visualisation settings.</p><p>The graphs of relative omission reveal a very different pattern of dynamism in response to repetition that is not obvious in the visualisation of the raw counts of omission (see <a href="../../visualisations/index.html">Absolute omissions</a>). The distribution of omission by relative values allows us to explore the underlying patterns of intensity with which translators omit repetitions along the frequency range as well as the amplitude of where omissions appear to be most intense. The findings also counter the mainstream belief about repetition in translation that the higher the frequency, the more likely it is that translators will lose it. The frequency of repetition input that comes from reading the original text is likely to correlate negatively with the intensity of repetition loss in translation. That is, the less frequent the repetition, the more intense is its loss in translation. And the higher the frequency of a <i>repeteme</i>, the less likely it is to be lost completely in translation. This strongly suggests that frequencies need to be analysed along with other parameters of how repetitions are used in literature, such as distance among repetition instances, and their semantic content.</p><p></p><img alt="Relative omissions" class="richtext-image full-width" height="568" src="../../media/images/02-relative-omissions.width-800.png" width="800"><p><i>Fig. 2</i> Relative omissions visualisation displaying overview of word repetitions omitted by Lithuanian (2003), Polish (1971) and Russian (1973) translators per each English repeteme.</p><p>You may also zoom in on the graphs for more detail by placing a cursor on any bar or blank space and using the roll wheel in the middle of your mouse. <i>Repeteme</i> <i>pointers</i> will appear on the frequency range once you zoom in close enough. You may also click on the <i>repeteme</i> <i>pointer</i> to view the dataset in its tabular mode in the database. Once you click on the pointer, you will be taken to the Tabular visualisation of the <i>repeteme</i>. It will show you 1) an excerpt of the English context in which the instances of the <i>repeteme</i> occurred; 2) lexical choices the translators made for each instance; and 3) the number of a sentence of the original text in which each instance is found.</p><p></p><img alt="Relative omissions zoomed in detail" class="richtext-image full-width" height="560" src="../../media/images/03-relative-omissions-zoomed-in.width-800.png" width="800"><p><i>Fig. 3</i> Relative omissions zoomed in detail, showing information about &#x27;SAY&#x27; repeteme.</p><p>The data for this visualisation can also be requested via the API and exported in JSON format.</p><p></p><p><a href="../../visualisations/index.html"><b>ABSOLUTE OMISSIONS</b></a><b> (exploratory)</b></p><p>The raw counts of omitted repetitions per each string are plotted along the range from high to low frequencies in area charts produced for each translation. These visuals are modelled on the concept and plots of absolute omission developed in the PI&#x27;s <a href="https://kclpure.kcl.ac.uk/portal/files/61485099/2016_Salciute_Civiliene_Gabrielle_0975961_ethesis.pdf">thesis</a> (see p. 89-90). The distribution of raw counts is called here &#x27;absolute omissions&#x27;. The total counts of omissions that each translator made per string are plotted against the total counts of repetitions in that string. The raw counts of omissions are computed to represent the degree of repetition loss. The grey background represents the frequencies counted in the original text and represented as repetition strings in the database. Bars in colour represent the frequency of omissions per each <i>repeteme</i> in the translated versions.</p><p>The graph represents the frequencies of omission counted in the translations of two out of four chapters of <i>The Sound and the Fury</i> – that is, the Benjy and the Dilsey chapters. In Settings, one can select which chapter to visualise. The Settings button at the top of the Visualisations page opens Settings window. Here you may unselect one of the chapters to filter the data.</p><p>The x-axis represents the frequency range of repetitions found in the original novel. In the database (see <a href="../../visualisations/index.html">Tabular</a>) those repetitions are represented by repetition strings as the physical expressions of <i>repetemes</i>, while <i>repeteme</i> pointers refer to strings visualised on the graph. Along the x-axis, the frequency range is represented by plotting the repetition strings in a sequential manner from the highest to the lowest value, which is the number of repetitions instances per string, and from the left side to the right side in the same numerical order as they appear in the database. Hence, the most frequent lexical <i>repeteme</i> SAY (<i>said</i>, <i>say</i>, <i>saying</i>), found to occur 1373 times in two chapters, comes first on the left side of the frequency range, and <i>repeteme</i> YELLOW, which is the least frequent with its two occurrences and last in alphabetical order, appears on the far right side of the range.</p><p>The scale from 0 to 50 on the y-axis is not an accurate representation of raw counts. The representation of the raw frequencies of repetition strings is truncated to 50 because of a wide gap between a few strings of high frequency and low-frequency strings that make up the largest share of all strings. For more detail on raw counts, you need to place a cursor on any bar representing the counts of omissions and at the top of the window a field in black background will appear. It summarises 1) how many times a <i>repeteme</i> is found to occur in the original text, 2) how many times it is omitted in a translated version, and 3) the share of omission counts relative to the total count of repetitions per string.</p><p></p><img alt="Absolute omissions" class="richtext-image full-width" height="551" src="../../media/images/04-absolute-omissions.width-800.png" width="800"><p><i>Fig. 4</i> Absolute omissions displaying overview of word repetitions omitted by Lithuanian (2003), Polish (1971) and Russian (1973) translator per each English repeteme.</p><p>You may explore the graphs in more detail since the frequency range contains many <i>repetemes</i>. Place a cursor on any bar and use a roll wheel in the middle of your mouse to zoom in on a <i>repeteme</i> of your choosing and its surrounding <i>repetemes</i>. <i>Repeteme</i> <i>pointers</i> will appear on the frequency range once you zoom in close enough. You may also use the repeteme <i>pointer</i> to view the dataset in tabular format. Once you click on the pointer, you will be taken to the Tabular visualisation of the <i>repeteme</i>. It will show you 1) an excerpt of the English context in which the instances of the <i>repeteme</i> occurred; 2) lexical choices the translators made for each instance; and 3) the number of a sentence of the original text in which each instance is found.</p><p></p><img alt="Absolute omissions zoomed in detail" class="richtext-image full-width" height="533" src="../../media/images/05-absolute-omissions-zoomed-in.width-800.png" width="800"><p><i>Fig. 5</i> Absolute omissions zoomed in detail, showing information about &#x27;SAY&#x27; repeteme.</p><p></p><p><a href="../../visualisations/index.html"><b>RELATIVE OMISSIONS (CALENDAR)</b></a><b> (exploratory)</b></p><p>Relative omissions are also available to be viewed in the calendar mode. You may choose this mode from the main menu or from the Settings. Note that the calendar view is experimental and may change in the future based on user testing and pending future funding .</p><p>Each <i>repeteme</i> is represented here as a square in different colour. The colour scheme represents the intensity of relative omission calculated per each <i>repeteme</i>. White squares mean that no instance of a <i>repeteme</i> has been omitted in a translation. Different semantic variants, though, may have been used by translators. The lighter the shade of green the lower the degree of relative omission. Darker tones of green indicate higher levels of omission per <i>repeteme</i>. The purple squares flag the <i>repetemes</i> whose every instance has been omitted in a translation.</p><p>Note that the graph may represent the same <i>repeteme</i> twice because the data is collected from across the Benjy chapter and Dilsey chapter. You may filter the data for each chapter by the name of its narrator in Settings.</p><p></p><img alt="Relative omissions - calendar view" class="richtext-image full-width" height="243" src="../../media/images/06-relative-omissions-calendar-view.width-800.png" width="800"><p><i>Fig. 6</i> Relative omissions, calendar view.</p><p></p><p><a href="../../visualisations/index.html"><b>VARIANT PROGRESSION</b></a><b> (exploratory)</b></p><p>From the main menu or Settings, you can select to explore another experimental visual which summarises the use of semantic variants that the translators chose to render each instance of SAY <i>repeteme</i>. No other <i>repetemes</i> have been visualised in this mode.</p><p>Squares in colour represent semantic variants per each instance of the SAY <i>repeteme</i>. The colour scheme represents the range of semantic variation where the pink colour stands for omission. This means that those SAY instances were not translated at all (e.g. as when <i>bathroom</i> could be translated in full as &#x27;vonios kambarys&#x27; in Lithuanian, but the choice is &#x27;vonia&#x27; only) or the whole sentence (or clause) was paraphrased so much that it is impossible to identify a close match in translation.</p><p></p><img alt="Variant progression" class="richtext-image full-width" height="239" src="../../media/images/07-variant-progression.width-800.png" width="800"><p><i>Fig. 7</i> Variant progression overview.</p><p></p><img alt="Variant progression with highlight" class="richtext-image full-width" height="262" src="../../media/images/08-variant-progression-highlight.width-800.png" width="800"><p><i>Fig. 8</i> Variant progression with highlight for &#x27;tarè&#x27; repeteme in chapter &#x27;Benjy&#x27;.</p><p></p><p><a href="../../visualisations/index.html"><b>TABULAR</b></a><b> (exploratory)</b></p><p>If you choose the Tabular mode from the main menu, you will be able to see a rendition of the database of all repetition strings computed and visualised in this project. The database contains all <i>repetemes</i> of low frequency collected from the Benjy and Dilsey chapters. Not all high-frequency repetemes, on the other hand, have been included in the database. However, pending further funding for the project, the future plan is to add all lexical repetitions, except for function words, from the Benjy and Dilsey chapters as well as from the remaining two chapters narrated by Quentin and Jason. It is also planned to include other translation versions from across a wider range of languages.</p><p>The Tabular mode displays the choices that the translators made (see also explanation under <a href="../dataset/index.html">Dataset</a>). Translatorial choices from across three versions (i.e. Lithuanian, first Russian, and first Polish translations) are aligned with the English text by the instances of repetition strings. A <i>repeteme</i> pointer indicates a separate entry for each repetition string. A <i>repeteme</i> <i>pointer</i> is followed by the list of word forms found in the original text and the frequency of their occurrences in parentheses. The first row of a <i>repeteme</i> entry displays short excerpts of the context of the English variants. The rows below contain translatorial choices per each repetition instance. The last row in each entry contains numerical values which are the numbers of sentences in which repetition instances are found. When it comes to sentence numbering, note that the original version in English was used as a basis to number the aligned translated versions because every now and then the translators were found to merge or split the original text sentences. Overall, the translators have kept close to the boundaries of original sentences. In rare cases would the translators leave original sentences untranslated in their entirety.</p><img alt="Tabular data portion" class="richtext-image full-width" height="408" src="../../media/images/09-tabular-view.width-800.png" width="800"><p><i>Fig. 9</i> Selection of the tabular data representation.</p></div>
+
+  </main>
+
+  
+  <footer>
+    
+    <p>
+  2024 - <a href="../../index.html"><abbrv title="Distant Reading Across Languages">DRaL</abbrv></a> - Designed, developed and maintained by <a href="http://kdl.kcl.ac.uk/" title="King's Digital Lab">King's Digital Lab</a>.
+</p>
+<nav class="footer-links">
+  <ul>
+    
+    
+      <li>
+        <a href="../../cookie-policy/index.html">Cookie Policy</a>
+      </li>
+    
+    
+      <li>
+        <a href="../../accessibility-statement/index.html">Accessibility Statement</a>
+      </li>
+    
+    
+      <li class="github-link">
+        <a href="https://github.com/kingsdigitallab/dral-django">DRaL on Github</a>
+      </li>
+    
+  </ul>
+</nav>
+
+<p><strong>Funded by</strong></p>
+<a href="http://kcl.ac.uk/" class="logo">
+  <img src="../../static/images/kings-logo-red.svg" alt="King's College logo and link to site">
+</a>
+
+    
+  </footer>
+  
+
+  <script type="text/javascript" src="../../static/CACHE/js/output.1e4d4e8f04bf.js"></script>
+
+  
+
+  
+</body>
+</html>

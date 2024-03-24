@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Dataset | Distant Reading Across Languages</title>
+  <meta name="author" content="King's Digital Lab">
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="../../static/CACHE/css/output.df098413ee2a.css" type="text/css" />
+  <!-- <link href="https://fonts.googleapis.com/css?family=Lora:400,400i,700,700i&display=swap&subset=cyrillic,cyrillic-ext,latin-ext" rel="stylesheet"> -->
+  <link href="../../static/vendor/google/fonts/lora/google-lora.css" rel="stylesheet">
+</head>
+<body>
+  
+  <header>
+    <h2><a href="../../index.html">
+    Distant Reading across Languages
+</a>
+</h2>
+  </header>
+  <nav class="menu">
+    
+
+
+
+<ul>
+    
+    <li><a href="../../visualisations/index.html">Visualisations</a></li>
+    
+    <li><a href="../index.html">About the Project</a></li>
+    
+</ul>
+
+
+  </nav>
+  
+
+  <main>
+    <h1>Dataset</h1>
+    
+<div class="rich-text"><p><a href="../repeteme/index.html">Repeteme</a> <a href="../visuals/index.html">Visuals</a> <a href="../bibliography/index.html">Bibliography</a> <a href="../team/index.html">Team</a></p><p></p><p>The DRaL Dataset consists of a large sample of <i>repetition strings</i> collected from each chapter of <i>The Sound and the Fury</i> (for the definition of <i>repetition string</i>, see <a href="../repeteme/index.html">Repeteme</a>). Data were initially collected in spreadsheets and modelled as <i>non-contiguous repetition strings</i> (see the IP&#x27;s <a href="https://kclpure.kcl.ac.uk/portal/files/61485099/2016_Salciute_Civiliene_Gabrielle_0975961_ethesis.pdf">thesis</a>). KDL mapped the original data to an ad hoc data model for the project, imported and stored it in a <a href="https://www.postgresql.org/)">PostgreSQL</a> database. During the phases of data migration and modelling, data was curated by Research Assistant. The data model and digital solutions created by KDL enabled iterative data cleaning and verification stages via the <a href="../../visualisations/index.html">tabular visualisations</a>. While the data model was mapped to the thesis dataset original structure, KDL solution optimised it and made it reusable for the potential <i>repeteme</i> analysis of other texts, provided the same input format is used.</p><p></p><p>The original text served to construct <i>repetition strings</i>, which have been continuously revised before and during DRaL. Strings were arranged in blocks to represent a <i>repeteme</i> (see <a href="../repeteme/index.html">Repeteme</a>). In spreadsheets, the English <i>strings</i> were arranged in rows by descending frequencies and in alphabetical order. The corresponding choices of the translators were aligned one by one with the instances of the English strings. The last row below translatorial strings in a <i>repeteme</i> entry contains the numbers of sentences in which English repetitions were found. Figure below illustrates the structure of a repeteme entry as created in the original database in spreadsheets:</p><p></p><img alt="Repeteme" class="richtext-image full-width" height="352" src="../../media/images/repeteme.width-800.png" width="800"><p>Instances that were omitted or heavily rephrased in translation were marked as &#x27;ZERO&#x27;. Colour coding was also used to model and compute the original dataset to extract the counts of, for example, omissions or different variants per string. Except for colour coding, the same principle of structuring and formatting the dataset has been used to create its <b>Tabular</b> visualisation (see <a href="../../visualisations/index.html">Visualisations</a>).</p><p>Currently, only data from two of the four chapters of the novel are available to the public to explore. These are the first and fourth chapters narrated by Benjy and Dilsey, and hence labelled as &#x27;Benjy&#x27; and &#x27;Dilsey&#x27; in Settings. Both datasets consist of repetitions gathered from the original text to construct <i>repetition strings</i> each instance of which is aligned with the choices that the translators made. The sources used to build the original datasets include the only existing Lithuanian, one Polish, and one Russian translations. In addition, the data from a second Russian translation and the first French translation have recently become available in the Benjy dataset of DRaL. For more information on the editions used in this project, see <a href="../bibliography/index.html">Bibliography</a>.</p><p>On the application of the concept of <b><i>repeteme</i></b> in the treatment of the project&#x27;s data, please see <a href="../repeteme/index.html">Repeteme</a>.</p><hr/><h3>Technical notes</h3><p>To experiment with data visualisations, King’s Digital Lab developed a web application where textual data can be uploaded dynamically by project partners and visualised to observe and reflect upon the patterns of how repetitions are rendered in translation.<br/>The web application is implemented and published using well established open source software and widely used web standards, such as the <a href="https://docs.djangoproject.com/)">Django web framework</a> together with the <a href="https://wagtail.io/">Wagtail content management system</a> package.</p><p>The data is exposed as a JSON Web API. To create the visualisations, the data is rendered into the dynamic featured and exploratory SVG graphs or plots using <a href="https://d3js.org/">D3.js</a> libraries.</p><p>Despite the project being experimental, the data model and the Web API make the DRaL system extensible to enable, for example, the creation of new visualisations.</p><p>The code for the project is available under MIT license on the KDL Github <a href="https://github.com/kingsdigitallab/dral-django">repository</a>.</p><p></p><p></p><p></p><p></p><p><br/></p></div>
+
+  </main>
+
+  
+  <footer>
+    
+    <p>
+  2024 - <a href="../../index.html"><abbrv title="Distant Reading Across Languages">DRaL</abbrv></a> - Designed, developed and maintained by <a href="http://kdl.kcl.ac.uk/" title="King's Digital Lab">King's Digital Lab</a>.
+</p>
+<nav class="footer-links">
+  <ul>
+    
+    
+      <li>
+        <a href="../../cookie-policy/index.html">Cookie Policy</a>
+      </li>
+    
+    
+      <li>
+        <a href="../../accessibility-statement/index.html">Accessibility Statement</a>
+      </li>
+    
+    
+      <li class="github-link">
+        <a href="https://github.com/kingsdigitallab/dral-django">DRaL on Github</a>
+      </li>
+    
+  </ul>
+</nav>
+
+<p><strong>Funded by</strong></p>
+<a href="http://kcl.ac.uk/" class="logo">
+  <img src="../../static/images/kings-logo-red.svg" alt="King's College logo and link to site">
+</a>
+
+    
+  </footer>
+  
+
+  <script type="text/javascript" src="../../static/CACHE/js/output.1e4d4e8f04bf.js"></script>
+
+  
+
+  
+</body>
+</html>

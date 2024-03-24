@@ -65,7 +65,7 @@ research_data/private
 local.py
 #local_*.py
 logs/
-static/
+/static
 
 # KDL
 /media

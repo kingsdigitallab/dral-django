@@ -1,0 +1,337 @@
+
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Visualisations | Distant Reading Across Languages</title>
+  <meta name="author" content="King's Digital Lab">
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="../static/CACHE/css/output.df098413ee2a.css" type="text/css" />
+  <!-- <link href="https://fonts.googleapis.com/css?family=Lora:400,400i,700,700i&display=swap&subset=cyrillic,cyrillic-ext,latin-ext" rel="stylesheet"> -->
+  <link href="../static/vendor/google/fonts/lora/google-lora.css" rel="stylesheet">
+</head>
+<body>
+  
+    <header>
+      <nav aria-label="Breadcrumb" class="breadcrumb">
+        <ul>
+          <li><a href="../index.html"><img src="../static/images/homepage-icon-64px.png" alt="homepage"> <strong><abbrv title="Distant Reading Across Languages">DRaL</abbrv></strong></a></li>
+          <li><a href="index.html">Visualisations</a></li>
+          <li><span class="page-title">Visualisations</span></li>
+        </ul>
+      </nav>
+      <!-- <nav aria-label="Actions" class="viz-actions">
+        <ul>
+          <li><a class="toggle-settings button" href="#">Settings</a></li>
+        </ul>
+      </span> -->
+    </header>
+
+
+  <main>
+    
+    
+
+    
+    <div class="rich-text"><p><b>See the detailed explanations of what each plot represents and communicates in</b> <a href="../about/visuals/index.html"><b>Visuals</b></a><b>.</b></p></div>
+    
+    
+
+
+
+
+<div id="settings">
+    <div class="settings-head">
+        <h3><img src="../static/images/cog-64.png" alt="Cog icon"> Settings</h3>
+        <button class="toggle-settings">Apply &amp; Close</button>
+    </div>
+    <div class="settings-body">
+        <div v-for="v in vars" class="settings-field">
+            <template v-if="!v.hidden">
+                <h4>
+                    {{ v.name }}
+                    <span v-if="v.type == 'multi'" class="var-actions">
+                        <a role="button" href="index.html%3Fviz=absolute_omission.html#" v-on:click.stop.prevent="select_all(v)">Select all</a>
+                        -
+                        <a role="button" href="index.html%3Fviz=absolute_omission.html#" v-on:click.stop.prevent="select_none(v)">Select none</a>
+                    </span>
+                </h4>
+                <template v-if="v.type == 'int'">
+                    <input class="setting-input" type="number" v-model="v.value" v-bind:aria-label="v.name">
+                </template>
+                <template v-if="v.type == 'str'">
+                    <input class="setting-input" type="text" v-model="v.value" v-bind:aria-label="v.name">
+                </template>
+                <template v-if="v.options">
+                    <ul>
+                        <li v-for="option in v.options">
+                            <template v-if="v.type == 'multi'">
+                                <label :class="{'option-selected': option.selected}">
+                                    <input type="checkbox" v-model="option.selected" v-bind:name="option.key">
+                                    {{ option.name }}
+                                </label>
+                            </template>
+                            <template v-if="v.type == 'single'">
+                                <label :class="{'option-selected': option.key == v.selected}">
+                                    <input type="radio" v-model="v.selected" v-bind:value="option.key" v-bind:name="v.key">
+                                    {{ option.name }}
+                                </label>
+                            </template>
+                        </li>
+                    </ul>
+                </template>
+            </template>
+        </div>
+        <button class="toggle-settings">Apply &amp; Close</button>
+    </div>
+</div>
+
+
+
+<div id="visualisation">
+    Loading visualisation...
+</div>
+
+  </main>
+
+  
+  <footer>
+    
+    <p>
+  2024 - <a href="../index.html"><abbrv title="Distant Reading Across Languages">DRaL</abbrv></a> - Designed, developed and maintained by <a href="http://kdl.kcl.ac.uk/" title="King's Digital Lab">King's Digital Lab</a>.
+</p>
+<nav class="footer-links">
+  <ul>
+    
+    
+      <li>
+        <a href="../cookie-policy/index.html">Cookie Policy</a>
+      </li>
+    
+    
+      <li>
+        <a href="../accessibility-statement/index.html">Accessibility Statement</a>
+      </li>
+    
+    
+      <li class="github-link">
+        <a href="https://github.com/kingsdigitallab/dral-django">DRaL on Github</a>
+      </li>
+    
+  </ul>
+</nav>
+
+<p><strong>Funded by</strong></p>
+<a href="http://kcl.ac.uk/" class="logo">
+  <img src="../static/images/kings-logo-red.svg" alt="King's College logo and link to site">
+</a>
+
+    
+  </footer>
+  
+
+  <script type="text/javascript" src="../static/CACHE/js/output.1e4d4e8f04bf.js"></script>
+
+  
+    
+    <script src="../static/vendor/vue/vue.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> -->
+    
+    <!-- <script src="https://d3js.org/d3.v5.min.js"></script> -->
+    <script src="../static/vendor/d3/d3.v5.min.js"></script>
+
+    <script type="text/javascript" src="../static/js/relative_omission.js"></script>
+
+    
+
+      <script  type="text/javascript">
+        window.text_infos = {"en":{"reference":"Faulkner, W. (1990) The Sound and the Fury. New York: Vintage Books.","pointer":"EN","label":"English (1929)","language":"English","code":"en"},"ru2":{"reference":"\u0424\u043e\u043b\u043a\u043d\u0435\u0440 \u0423. (2001) \u0417\u0432\u0443\u043a \u0438 \u044f\u0440\u043e\u0441\u0442\u044c. Gurova I.G. (transl.) Moscow: ACT.","pointer":"RU2001","label":"Russian (2001)","language":"Russian","code":"ru2"},"pol":{"reference":"Faulkner, W. (1971) W\u015bciek\u0142o\u015b\u0107 i wrzask. Przedpe\u0142ska-Trzeciakowska, A. (transl.) Warsaw: Czytelnik.","pointer":"POL1971","label":"Polish (1971)","language":"Polish","code":"pol"},"pol2":{"reference":"Faulkner, W. (2000) W\u015bciek\u0142o\u015b\u0107 i wrzask. Polak, J. (transl.) Poznan: Dom Wydawniczy 'Rebis'.","pointer":"POL2000","label":"Polish (2000)","language":"Polish","code":"pol2"},"fr":{"reference":"Faulkner, W. (1972) Le bruit et la fureur.Coindreau M.E. (transl.) Paris: Gallimard.","pointer":"FR1972","label":"French (1972)","language":"French","code":"fr"},"lt":{"reference":"Faulkner, W. (2003) Triuk\u0161mas ir \u012fnir\u0161is. Tauragien\u0117, V. (transl.). Vilnius: Lietuvos.","pointer":"LT2003","label":"Lithuanian (2003)","language":"Lithuanian","code":"lt"},"ru":{"reference":"\u0424\u043e\u043b\u043a\u043d\u0435\u0440,\u0423.(2006)\u0428\u0443\u043c \u0438 \u044f\u0440\u043e\u0441\u0442\u044c. Soroka, O. P. (transl.) Moscow: Azbooka.","pointer":"RU2006","label":"Russian (1973)","language":"Russian","code":"ru"}};
+
+        function get_text_info(text_code) {
+            var ret = {
+                'code': text_code,
+                'language': text_code,
+                'reference': text_code,
+                'label': text_code,
+                'pointer': text_code,
+            };
+            var text = window.text_infos[text_code];
+            if (text) {
+                Object.keys(ret).forEach(function (k) {
+                    ret[k] = text[k] || ret[k];
+                });
+            }
+            return ret;
+        }
+        window.info_box_vue = null;
+
+        function infobox_dict(dict) {
+            Vue.set(window.info_box_vue, 'd', dict);
+        }
+
+        function round(value) {
+            return round_dec(value, 2);
+        }
+
+        function round_dec(value, decimals) {
+            return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+        }
+
+        function apply_template(template_name, context) {
+            var ret = $('.template.'+template_name).first().html();
+
+            $.each(context, function(name, val) {
+                var rgx = new RegExp('\{\{\s*'+name+'\s*\}\}', 'g');
+                ret = ret.replace(rgx, val);
+            });
+
+            return ret;
+        };
+
+        // -------------------------------
+
+      </script>
+
+      <script type="text/javascript">
+        $(function() {
+            var $win = $(window);
+            var $body = $('body');
+            var $settings = $('#settings');
+            var $fragment = $('#visualisation');
+            const urlParams = new URLSearchParams(window.location.search);
+
+            var config = [{"name":"Visualisation","selected":urlParams.get("viz"),"key":"viz","default":"relative_omission","type":"single","options":[{"default":true,"name":"Relative omissions","selected":false,"key":"relative_omission"},{"default":false,"name":"Absolute omissions","selected":true,"key":"absolute_omission"},{"default":false,"name":"Relative omissions (calendar)","selected":false,"key":"relative_omission_calendar"},{"default":false,"name":"Variant progression","selected":false,"key":"variants_progression"},{"default":false,"name":"Tabular","selected":false,"key":"tabular"},{"default":false,"name":"JSON","selected":false,"key":"json"}]},{"name":"Chapter","selected":["benjy","dilsey"],"key":"chapter","default":["benjy","dilsey"],"type":"multi","options":[{"default":true,"name":"Benjy","selected":true,"key":"benjy"},{"default":true,"name":"Dilsey","selected":true,"key":"dilsey"}]},{"name":"Sort by","selected":"frequency","key":"sort","default":"frequency","type":"single","options":[{"default":true,"name":"Frequency","selected":true,"key":"frequency"},{"default":false,"name":"Name","selected":false,"key":"name"},{"default":false,"name":"Omission","selected":false,"key":"omission"}]},{"name":"Minimum frequency","selected":0,"key":"freq-min","default":0,"value":0,"type":"int"},{"name":"Repeteme","selected":"ALL","key":"repeteme","default":"ALL","value":"ALL","type":"str"},{"name":"Text","selected":["fr","lt","pol","pol2","ru","ru2"],"key":"text","default":["fr","lt","pol","pol2","ru","ru2"],"type":"multi","options":[{"default":true,"name":"French (1972)","selected":true,"key":"fr"},{"default":true,"name":"Lithuanian (2003)","selected":true,"key":"lt"},{"default":true,"name":"Polish (1971)","selected":true,"key":"pol"},{"default":true,"name":"Polish (2000)","selected":true,"key":"pol2"},{"default":true,"name":"Russian (1973)","selected":true,"key":"ru"},{"default":true,"name":"Russian (2001)","selected":true,"key":"ru2"}]}];
+            var vue_config = new_vue_config(config);
+            var $json_link = $('#json-link');
+
+            $win.on('keyup', function(ev) {
+                if (ev.which == 27) {
+                    return toggle_settings();
+                }
+            });
+
+            $body.on('click', '.toggle-settings', function() {
+                return toggle_settings();
+            });
+
+            function toggle_settings() {
+                $body.toggleClass('settings-visible');
+                if (!$body.hasClass('settings-visible')) {
+                    request_fragment();
+                }
+                return false;
+            }
+
+            function new_vue_config(config) {
+                var ret = new Vue({
+                    el: '#settings .settings-body',
+                    data: {
+                        vars: config
+                    },
+                    methods: {
+                        'select_all': function(avar) {
+                            $.each(avar.options, function(idx, option) {
+                                option.selected = true;
+                            });
+                        },
+                        'select_none': function(avar) {
+                            $.each(avar.options, function(idx, option) {
+                                option.selected = false;
+                            });
+                        },
+                        'get_request_data': function() {
+                            // We convert the config vars into a
+                            // dictionary: {var_key: [selected_value/key, ...]}
+                            var ret = {};
+                            $.each(this.vars, function(idx, avar) {
+                                var values = [];
+                                if (avar.type == 'int' || avar.type == 'str') {
+                                    // selection is help in var.selected
+                                    ret[avar.key] = avar.value;
+                                } else if (avar.type == 'single') {
+                                    // selection is help in var.selected
+                                    ret[avar.key] = avar.selected;
+                                } else {
+                                    // selctions are held in var.options.X.selected
+                                    $.each(avar.options, function(idx, option) {
+                                        if (option.selected) {
+                                            values.push(option.key);
+                                        }
+                                    });
+                                    ret[avar.key] = values.join(',');
+                                }
+                            });
+                            // console.log(ret);
+                            return ret;
+                        }
+                    }
+                });
+                return ret;
+            }
+
+            function request_fragment() {
+                $fragment.stop(true, true).fadeTo('slow', 0.2);
+
+                var url = document.location.href;
+
+                url = url.replace(/(#|\?).*/i, '');
+                params = vue_config.get_request_data();
+                params.js = 1;
+
+                var req = $.getJSON({
+                    url: 'data/' + Object.keys(params).map(k => `${k}__${params[k]}`).join(';') + '.json',
+                })
+
+                req.done(function(data, textStatus, jqXHR) {
+                    Vue.set(vue_config, 'vars', data.config);
+                    replace_fragment(data);
+                    $fragment.stop(true, true).css('opacity', 1);
+
+                    if ($('#infobox').length) {
+                        window.info_box_vue = new Vue({
+                            el: '#infobox',
+                            data: {
+                                d: {},
+                            },
+                            filters: {
+                                percent: function(val, total) {
+                                    return Math.round((val / total) * 1000) / 10;
+                                }
+                            }
+                        });
+                    }
+
+                    if ($json_link.length) {
+                        $json_link.attr(
+                            'href',
+                            '/api/v1/occurrences/'+window.location.search
+                        );
+                    }
+                    $json_link.toggleClass('hidden', $json_link.length < 1);
+                });
+            }
+            request_fragment();
+
+            function replace_fragment(data) {
+                $fragment.html(data.html);
+                $('.page-title').html(data.page_title);
+                if (history.replaceState) {
+                    var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?' + data.qs;
+                    window.history.replaceState({path:newurl},'',newurl);
+                }
+            }
+
+        });
+      </script>
+
+    
+
+
+
+  
+</body>
+</html>
